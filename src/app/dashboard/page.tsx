@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
-import { getBookingsForCurrentUser } from "@/lib/bookings";
 import { getCurrentUser } from "@/lib/auth/actions";
 import AppShell from "@/components/layout/AppShell";
 
@@ -26,6 +25,35 @@ function formatTime(iso: string) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(iso));
+}
+
+type DashboardBooking = {
+  id: string;
+  status: string;
+  start_time: string;
+  end_time: string;
+  resource?: { name: string }[] | null;
+};
+
+async function getBookingsForCurrentUser(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<DashboardBooking[]> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) return [];
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, status, start_time, end_time, resource:resources(name)")
+    .eq("user_id", user.id)
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? []) as DashboardBooking[];
 }
 
 export default async function DashboardPage() {
@@ -141,7 +169,7 @@ export default async function DashboardPage() {
                 href="/profile"
                 title="View profile"
                 aria-label="View your profile"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-orange-400 text-xs font-semibold text-white shadow-sm transition hover:scale-105 hover:shadow-md"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-amber-300 to-orange-400 text-xs font-semibold text-white shadow-sm transition hover:scale-105 hover:shadow-md"
               >
                 {initials}
               </Link>
@@ -236,7 +264,7 @@ export default async function DashboardPage() {
 
                       <div>
                         <p className="text-sm font-semibold text-slate-800">
-                          {booking.resource?.name ?? "Mentorship Session"}
+                          {booking.resource?.[0]?.name ?? "Mentorship Session"}
                         </p>
 
                         <p className="mt-1 text-sm text-slate-500">
