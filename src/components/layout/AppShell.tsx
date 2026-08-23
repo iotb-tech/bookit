@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 
 import {
   BookOpen,
-  CalendarCheck2,
   CalendarDays,
   LayoutDashboard,
   LogOut,
@@ -86,7 +85,7 @@ export default function AppShell({
             aria-label="Go to BookIt home page"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white">
-              <CalendarCheck2
+              <CalendarDays
                 size={19}
               />
             </span>
