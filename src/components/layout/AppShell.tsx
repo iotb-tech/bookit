@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Settings,
   UserRound,
+  UsersRound,
   X,
 } from "lucide-react";
 
@@ -36,6 +37,11 @@ const mobileLinks = [
     "My Bookings",
     "/my-bookings",
     CalendarDays,
+  ],
+  [
+    "My Study Groups",
+    "/my-study-groups",
+    UsersRound,
   ],
   [
     "Messages",

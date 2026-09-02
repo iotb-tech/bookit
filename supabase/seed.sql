@@ -268,55 +268,18 @@ begin
 
   if next_id is not null then
 
-    insert into public.resource_availability (
-      resource_id,
-      start_time,
-      end_time,
-      status
+    insert into public.study_group_sessions (
+      resource_id, start_time, end_time, meeting_link, status, created_by
     )
-
-    values
-
-      (
-        next_id,
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '3 days 15 hours',
-
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '3 days 16 hours',
-
-        'available'
-      ),
-
-      (
-        next_id,
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '5 days 15 hours',
-
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '5 days 16 hours',
-
-        'available'
-      )
-
-    on conflict (
-      resource_id,
-      start_time,
-      end_time
-    )
-    do nothing;
+    select next_id,
+      date_trunc('day', now()) + interval '3 days 15 hours',
+      date_trunc('day', now()) + interval '3 days 16 hours 30 minutes',
+      null, 'scheduled', owner
+    where not exists (
+      select 1 from public.study_group_sessions s
+      where s.resource_id = next_id
+        and s.start_time = date_trunc('day', now()) + interval '3 days 15 hours'
+    );
 
   end if;
 
@@ -376,55 +339,18 @@ begin
 
   if database_id is not null then
 
-    insert into public.resource_availability (
-      resource_id,
-      start_time,
-      end_time,
-      status
+    insert into public.study_group_sessions (
+      resource_id, start_time, end_time, meeting_link, status, created_by
     )
-
-    values
-
-      (
-        database_id,
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '3 days 10 hours',
-
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '3 days 11 hours',
-
-        'available'
-      ),
-
-      (
-        database_id,
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '6 days 14 hours',
-
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '6 days 15 hours',
-
-        'available'
-      )
-
-    on conflict (
-      resource_id,
-      start_time,
-      end_time
-    )
-    do nothing;
+    select database_id,
+      date_trunc('day', now()) + interval '3 days 10 hours',
+      date_trunc('day', now()) + interval '3 days 11 hours 30 minutes',
+      null, 'scheduled', owner
+    where not exists (
+      select 1 from public.study_group_sessions s
+      where s.resource_id = database_id
+        and s.start_time = date_trunc('day', now()) + interval '3 days 10 hours'
+    );
 
   end if;
 
@@ -484,55 +410,18 @@ begin
 
   if python_id is not null then
 
-    insert into public.resource_availability (
-      resource_id,
-      start_time,
-      end_time,
-      status
+    insert into public.study_group_sessions (
+      resource_id, start_time, end_time, meeting_link, status, created_by
     )
-
-    values
-
-      (
-        python_id,
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '5 days 10 hours',
-
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '5 days 11 hours',
-
-        'available'
-      ),
-
-      (
-        python_id,
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '9 days 10 hours',
-
-        date_trunc(
-          'day',
-          now()
-        ) +
-          interval '9 days 11 hours',
-
-        'available'
-      )
-
-    on conflict (
-      resource_id,
-      start_time,
-      end_time
-    )
-    do nothing;
+    select python_id,
+      date_trunc('day', now()) + interval '5 days 10 hours',
+      date_trunc('day', now()) + interval '5 days 11 hours 30 minutes',
+      null, 'scheduled', owner
+    where not exists (
+      select 1 from public.study_group_sessions s
+      where s.resource_id = python_id
+        and s.start_time = date_trunc('day', now()) + interval '5 days 10 hours'
+    );
 
   end if;
 

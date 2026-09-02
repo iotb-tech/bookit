@@ -29,6 +29,8 @@ import {
   ResourceError,
 } from "./ResourceError";
 
+import StudyGroupJoinPanel from "./StudyGroupJoinPanel";
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -409,13 +411,15 @@ export function ResourceDetails({
           ];
 
   const statusText =
-    resource.status ===
-    "available"
-      ? "Available for booking"
-      : resource.status ===
-          "maintenance"
+    resource.status === "available"
+      ? studyGroup
+        ? "Open for members"
+        : "Available for booking"
+      : resource.status === "maintenance"
         ? "Temporarily unavailable"
-        : "Currently unavailable";
+        : studyGroup
+          ? "Membership closed"
+          : "Currently unavailable";
 
   /* =======================================================
      PAGE
@@ -555,333 +559,190 @@ export function ResourceDetails({
         </div>
 
         {/* =================================================
-            AVAILABILITY
+            BOOKING / STUDY GROUP MEMBERSHIP
         ================================================= */}
 
         <div className="border-t border-slate-200 p-5 sm:p-6 md:p-8">
-
           <div className="max-w-3xl">
-
-            {/* AVAILABILITY TITLE */}
-
-            <div>
-              <h2 className="text-lg font-semibold text-slate-800">
-                {studyGroup
-                  ? "Upcoming Study Sessions"
-                  : "Choose an Available Session"}
-              </h2>
-
-              <p className="mt-1 text-sm leading-6 text-slate-500">
-                {studyGroup
-                  ? "Choose an available study date and session time."
-                  : "Select a day and choose a convenient one-hour mentorship session."}
-              </p>
-            </div>
-
-            {/* =============================================
-                RESOURCE UNAVAILABLE
-            ============================================= */}
-
-            {!canBook ? (
-              <div className="mt-5 rounded-lg border border-dashed border-slate-200 px-5 py-6">
-
-                <p className="text-sm font-medium text-slate-700">
-                  Booking is currently unavailable for this resource.
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Check back when the resource status changes to available.
-                </p>
-              </div>
-
-            ) : availabilityLoading ? (
-
-              /* ===========================================
-                 AVAILABILITY LOADING
-              =========================================== */
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-
-                <div className="h-20 animate-pulse rounded-lg bg-slate-100" />
-
-                <div className="h-20 animate-pulse rounded-lg bg-slate-100" />
-              </div>
-
-            ) : availabilityError ? (
-
-              /* ===========================================
-                 AVAILABILITY ERROR
-              =========================================== */
-
-              <div className="mt-5 rounded-lg border border-red-100 bg-red-50 px-5 py-5">
-
-                <p className="text-sm font-medium text-red-700">
-                  Availability could not be loaded.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    refetchAvailability()
-                  }
-                  className="mt-2 text-sm font-semibold text-primary-700 hover:text-primary-800"
-                >
-                  Try again
-                </button>
-              </div>
-
-            ) : availability.length ===
-                0 ? (
-
-              /* ===========================================
-                 NO AVAILABILITY
-              =========================================== */
-
-              <div className="mt-5 rounded-lg border border-dashed border-slate-200 px-5 py-6">
-
-                <p className="text-sm font-medium text-slate-700">
-                  {studyGroup
-                    ? "No upcoming study sessions."
-                    : "No upcoming availability."}
-                </p>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Check back later for new sessions.
-                </p>
-              </div>
-
-            ) : (
-
-              /* ===========================================
-                 DATE + TIME SELECTORS
-              =========================================== */
-
-              <div className="mt-6">
-
-                <div className="grid gap-5 sm:grid-cols-2">
-
-                  {/* =======================================
-                      DATE SELECT
-                  ======================================= */}
-
-                  <div>
-                    <label
-                      htmlFor="booking-date"
-                      className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                      {studyGroup
-                        ? "Choose a study day"
-                        : "Choose a day"}
-                    </label>
-
-                    <div className="relative">
-
-                      <CalendarDays
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                      />
-
-                      <select
-                        id="booking-date"
-                        value={
-                          activeDate
-                        }
-                        onChange={(
-                          event
-                        ) => {
-                          setSelectedDate(
-                            event
-                              .target
-                              .value
-                          );
-
-                          setSelectedSlotId(
-                            ""
-                          );
-                        }}
-                        className="h-12 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-11 pr-10 text-sm font-medium text-slate-700 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-                      >
-                        {availableDates.map(
-                          (
-                            date
-                          ) => (
-                            <option
-                              key={
-                                date.value
-                              }
-                              value={
-                                date.value
-                              }
-                            >
-                              {
-                                date.label
-                              }
-                            </option>
-                          )
-                        )}
-                      </select>
-
-                      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                        ▼
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* =======================================
-                      TIME SELECT
-                  ======================================= */}
-
-                  <div>
-                    <label
-                      htmlFor="booking-time"
-                      className="mb-2 block text-sm font-semibold text-slate-700"
-                    >
-                      {studyGroup
-                        ? "Choose a session time"
-                        : "Choose a time"}
-                    </label>
-
-                    <div className="relative">
-
-                      <Clock3
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                      />
-
-                      <select
-                        id="booking-time"
-                        value={
-                          selectedSlotId
-                        }
-                        onChange={(
-                          event
-                        ) =>
-                          setSelectedSlotId(
-                            event
-                              .target
-                              .value
-                          )
-                        }
-                        className="h-12 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-11 pr-10 text-sm font-medium text-slate-700 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-                      >
-                        <option value="">
-                          Select a time
-                        </option>
-
-                        {slotsForSelectedDate.map(
-                          (
-                            slot
-                          ) => (
-                            <option
-                              key={
-                                slot.id
-                              }
-                              value={
-                                slot.id
-                              }
-                            >
-                              {formatSlotTime(
-                                slot.start_time
-                              )}{" "}
-                              -{" "}
-                              {formatSlotTime(
-                                slot.end_time
-                              )}
-                            </option>
-                          )
-                        )}
-                      </select>
-
-                      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                        ▼
-                      </span>
-                    </div>
-
-                    <p className="mt-2 text-xs text-slate-400">
-                      {
-                        slotsForSelectedDate.length
-                      }{" "}
-                      {slotsForSelectedDate.length ===
-                      1
-                        ? "session"
-                        : "sessions"}{" "}
-                      available on this day.
-                    </p>
-                  </div>
+            {studyGroup ? (
+              <>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-800">
+                    Join this Study Group
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Become a member once, then attend the shared sessions scheduled for the whole group.
+                  </p>
                 </div>
 
-                {/* =========================================
-                    SELECTED SESSION
-                ========================================= */}
+                <StudyGroupJoinPanel
+                  resourceId={resource.id}
+                  resourceStatus={resource.status}
+                />
+              </>
+            ) : (
+              <>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-800">
+                    Choose an Available Session
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Select a day and choose a convenient one-hour mentorship session.
+                  </p>
+                </div>
 
-                {selectedSlot && (
-                  <div className="mt-6 rounded-xl border border-primary-100 bg-primary-50 p-5">
-
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-
+                {!canBook ? (
+                  <div className="mt-5 rounded-lg border border-dashed border-slate-200 px-5 py-6">
+                    <p className="text-sm font-medium text-slate-700">
+                      Booking is currently unavailable for this resource.
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Check back when the resource status changes to available.
+                    </p>
+                  </div>
+                ) : availabilityLoading ? (
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div className="h-20 animate-pulse rounded-lg bg-slate-100" />
+                    <div className="h-20 animate-pulse rounded-lg bg-slate-100" />
+                  </div>
+                ) : availabilityError ? (
+                  <div className="mt-5 rounded-lg border border-red-100 bg-red-50 px-5 py-5">
+                    <p className="text-sm font-medium text-red-700">
+                      Availability could not be loaded.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => refetchAvailability()}
+                      className="mt-2 text-sm font-semibold text-primary-700 hover:text-primary-800"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : availability.length === 0 ? (
+                  <div className="mt-5 rounded-lg border border-dashed border-slate-200 px-5 py-6">
+                    <p className="text-sm font-medium text-slate-700">
+                      No upcoming availability.
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Check back later for new sessions.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-6">
+                    <div className="grid gap-5 sm:grid-cols-2">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary-600">
-                          Selected session
-                        </p>
+                        <label
+                          htmlFor="booking-date"
+                          className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                          Choose a day
+                        </label>
 
-                        <p className="mt-2 font-semibold text-slate-800">
-                          {formatFullDate(
-                            selectedSlot.start_time
-                          )}
-                        </p>
-
-                        <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-
-                          <Clock3
-                            size={15}
-                            className="text-slate-400"
+                        <div className="relative">
+                          <CalendarDays
+                            size={18}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                           />
-
-                          {formatSlotTime(
-                            selectedSlot.start_time
-                          )}
-
-                          <span>
-                            -
+                          <select
+                            id="booking-date"
+                            value={activeDate}
+                            onChange={(event) => {
+                              setSelectedDate(event.target.value);
+                              setSelectedSlotId("");
+                            }}
+                            className="h-12 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-11 pr-10 text-sm font-medium text-slate-700 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                          >
+                            {availableDates.map((date) => (
+                              <option key={date.value} value={date.value}>
+                                {date.label}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                            ▼
                           </span>
-
-                          {formatSlotTime(
-                            selectedSlot.end_time
-                          )}
-                        </p>
+                        </div>
                       </div>
 
-                      {/* CONTINUE BUTTON */}
+                      <div>
+                        <label
+                          htmlFor="booking-time"
+                          className="mb-2 block text-sm font-semibold text-slate-700"
+                        >
+                          Choose a time
+                        </label>
 
-                      <Link
-                        href={`/book/${resource.id}?slot=${selectedSlot.id}`}
-                        className="flex h-11 shrink-0 items-center justify-center rounded-lg bg-primary-600 px-6 text-sm font-semibold text-white transition hover:bg-primary-700"
-                      >
-                        {studyGroup
-                          ? "Continue to Join"
-                          : "Continue to Booking"}
-                      </Link>
+                        <div className="relative">
+                          <Clock3
+                            size={18}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                          />
+                          <select
+                            id="booking-time"
+                            value={selectedSlotId}
+                            onChange={(event) => setSelectedSlotId(event.target.value)}
+                            className="h-12 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-11 pr-10 text-sm font-medium text-slate-700 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                          >
+                            <option value="">Select a time</option>
+                            {slotsForSelectedDate.map((slot) => (
+                              <option key={slot.id} value={slot.id}>
+                                {formatSlotTime(slot.start_time)} - {formatSlotTime(slot.end_time)}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                            ▼
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs text-slate-400">
+                          {slotsForSelectedDate.length} {slotsForSelectedDate.length === 1 ? "session" : "sessions"} available on this day.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* NO TIME SELECTED */}
+                    {selectedSlot && (
+                      <div className="mt-6 rounded-xl border border-primary-100 bg-primary-50 p-5">
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary-600">
+                              Selected session
+                            </p>
+                            <p className="mt-2 font-semibold text-slate-800">
+                              {formatFullDate(selectedSlot.start_time)}
+                            </p>
+                            <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                              <Clock3 size={15} className="text-slate-400" />
+                              {formatSlotTime(selectedSlot.start_time)}
+                              <span>-</span>
+                              {formatSlotTime(selectedSlot.end_time)}
+                            </p>
+                          </div>
 
-                {!selectedSlot && (
-                  <div className="mt-5 rounded-lg border border-dashed border-slate-200 px-4 py-3">
+                          <Link
+                            href={`/book/${resource.id}?slot=${selectedSlot.id}`}
+                            className="flex h-11 shrink-0 items-center justify-center rounded-lg bg-primary-600 px-6 text-sm font-semibold text-white transition hover:bg-primary-700"
+                          >
+                            Continue to Booking
+                          </Link>
+                        </div>
+                      </div>
+                    )}
 
-                    <p className="text-sm text-slate-500">
-                      Select an available time to continue.
+                    {!selectedSlot && (
+                      <div className="mt-5 rounded-lg border border-dashed border-slate-200 px-4 py-3">
+                        <p className="text-sm text-slate-500">
+                          Select an available time to continue.
+                        </p>
+                      </div>
+                    )}
+
+                    <p className="mt-4 text-xs text-slate-400">
+                      Times shown in West Africa Time.
                     </p>
                   </div>
                 )}
-
-                {/* TIMEZONE */}
-
-                <p className="mt-4 text-xs text-slate-400">
-                  Times shown in West Africa Time.
-                </p>
-              </div>
+              </>
             )}
           </div>
         </div>

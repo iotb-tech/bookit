@@ -11,6 +11,7 @@ import {
 import {
   CalendarDays,
   Clock3,
+  Video,
 } from "lucide-react";
 
 import type {
@@ -405,21 +406,33 @@ export default function BookingCard({
           }
         </span>
 
-        {/* CANCEL BUTTON */}
+        {/* ACTIONS */}
 
-        {canCancel ? (
-          <button
-            type="button"
-            onClick={
-              openCancelModal
-            }
-            className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-          >
-            Cancel
-          </button>
-        ) : (
-          <span className="hidden sm:block" />
-        )}
+        <div className="flex items-center gap-2">
+          {canCancel && booking.resource?.meeting_link && (
+            <a
+              href={booking.resource.meeting_link}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-primary-200 bg-primary-50 px-3 text-xs font-semibold text-primary-700 transition hover:bg-primary-100"
+            >
+              <Video size={14} />
+              Join
+            </a>
+          )}
+
+          {canCancel ? (
+            <button
+              type="button"
+              onClick={openCancelModal}
+              className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            >
+              Cancel
+            </button>
+          ) : (
+            <span className="hidden sm:block" />
+          )}
+        </div>
       </article>
 
       {/* ===================================================

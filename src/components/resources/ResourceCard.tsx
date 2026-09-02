@@ -109,14 +109,15 @@ export function ResourceCard({
     "available";
 
   const availabilityText =
-    !isAvailable
-      ? resource.status ===
-        "maintenance"
-        ? "Temporarily unavailable"
-        : "No open slots"
-      : formatAvailability(
-          resource.next_available_at
-        );
+    type === "Study Group"
+      ? isAvailable
+        ? "Open for members"
+        : "Membership closed"
+      : !isAvailable
+        ? resource.status === "maintenance"
+          ? "Temporarily unavailable"
+          : "No open slots"
+        : formatAvailability(resource.next_available_at);
 
   return (
     <article className="group flex min-h-[270px] flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-md">
@@ -153,10 +154,7 @@ export function ResourceCard({
 
       <div className="mt-auto pt-5">
         <p className="text-xs font-medium text-slate-400">
-          {type ===
-          "Study Group"
-            ? "Next session"
-            : "Next available"}
+          {type === "Study Group" ? "Membership" : "Next available"}
         </p>
 
         <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-600">
@@ -174,7 +172,7 @@ export function ResourceCard({
           href={`/resources/${resource.id}`}
           className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary-200 bg-primary-50/40 text-sm font-semibold text-primary-700 transition hover:border-primary-300 hover:bg-primary-50"
         >
-          View Availability
+          {type === "Study Group" ? "Join Group" : "View Availability"}
 
           <ArrowRight
             size={15}

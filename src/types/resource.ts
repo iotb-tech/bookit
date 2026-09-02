@@ -10,6 +10,7 @@ export type ResourceType =
 export interface Resource {
   id: string;
   name: string;
+  headline?: string | null;
   description: string | null;
   owner_id: string;
   owner_name?: string | null;
@@ -19,6 +20,8 @@ export interface Resource {
   skills?: string[];
   duration_minutes?: number | null;
   status: ResourceStatus;
-
+  timezone?: string | null;
   next_available_at?: string | null;
+  capacity?: number | null;
+  archived_at?: string | null;
 }

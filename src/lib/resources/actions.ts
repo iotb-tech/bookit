@@ -1,8 +1,8 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
-import { resourceSchema } from '@/schemas/resourceSchema';
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { resourceSchema } from "@/schemas/resourceSchema";
 
 export async function createResource(values: unknown) {
   const parsed = resourceSchema.safeParse(values);
@@ -10,51 +10,57 @@ export async function createResource(values: unknown) {
   if (!parsed.success) {
     return {
       success: false,
-      error: parsed.error.issues[0]?.message ?? 'Please check the form values and try again.',
+      error: parsed.error.issues[0]?.message ?? "Please check the form values and try again.",
     };
   }
 
   const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return {
-      success: false,
-      error: 'You must be logged in to create a resource.',
-    };
+    return { success: false, error: "You must be logged in to create a resource." };
   }
 
   const payload = parsed.data;
 
-  const durationMinutes =
-    payload.duration_minutes === undefined || payload.duration_minutes === ''
-      ? null
-      : Number(payload.duration_minutes);
+  if (payload.type === "Mentor") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  const { error } = await supabase.from('resources').insert({
+    if (profile?.role !== "mentor") {
+      return {
+        success: false,
+        error: "Only an approved mentor account can create a mentor resource.",
+      };
+    }
+  }
+
+  const durationMinutes = payload.duration_minutes === undefined || payload.duration_minutes === "" ? null : Number(payload.duration_minutes);
+  const canonicalType = payload.type === "Mentor" ? "mentor" : "study_group";
+
+  const basePayload = {
     name: payload.name,
     description: payload.description,
     owner_id: user.id,
-    type: payload.type,
     status: payload.status,
     duration_minutes: durationMinutes,
-    skills: [],
-  });
+    skills: [] as string[],
+  };
 
-  if (error) {
-    return {
-      success: false,
-      error: error.message,
-    };
+  let insertion = await supabase.from("resources").insert({ ...basePayload, type: canonicalType });
+
+  // Compatibility with an older text-column BookIt database that stored display labels.
+  if (insertion.error && /type|enum|constraint/i.test(insertion.error.message)) {
+    insertion = await supabase.from("resources").insert({ ...basePayload, type: payload.type });
   }
 
-  revalidatePath('/resources');
-  return {
-    success: true,
-    message: 'Resource created successfully.',
-  };
+  if (insertion.error) {
+    return { success: false, error: insertion.error.message };
+  }
+
+  revalidatePath("/resources");
+  return { success: true, message: "Resource created successfully." };
 }

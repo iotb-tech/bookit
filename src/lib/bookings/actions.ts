@@ -174,6 +174,18 @@ export async function createBookingAction(
     `/resources/${resourceId}`
   );
 
+  revalidatePath(
+    "/mentor/dashboard"
+  );
+
+  revalidatePath(
+    "/mentor/sessions"
+  );
+
+  revalidatePath(
+    "/mentor/availability"
+  );
+
   return {
     success: true,
 
@@ -259,6 +271,18 @@ export async function cancelBookingAction(
 
   revalidatePath(
     "/resources"
+  );
+
+  revalidatePath(
+    "/mentor/dashboard"
+  );
+
+  revalidatePath(
+    "/mentor/sessions"
+  );
+
+  revalidatePath(
+    "/mentor/availability"
   );
 
   return {

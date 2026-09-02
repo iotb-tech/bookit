@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Settings,
   UserRound,
+  UsersRound,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -33,6 +34,11 @@ const navigation = [
     label: "My Bookings",
     href: "/my-bookings",
     icon: CalendarDays,
+  },
+  {
+    label: "My Study Groups",
+    href: "/my-study-groups",
+    icon: UsersRound,
   },
   {
     label: "Messages",
