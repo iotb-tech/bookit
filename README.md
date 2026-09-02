@@ -61,9 +61,11 @@ Mentor availability
       ↓
 Mentee chooses one slot
       ↓
-Booking confirmed
+Booking request becomes Pending
       ↓
-That exact slot becomes booked
+Mentor confirms or cancels
+      ↓
+That exact slot stays reserved while active
 
 STUDY GROUP
 Study Group
@@ -107,6 +109,7 @@ A Study Group session is **not** booked once per member. If Team 4 has 11 member
 - `/book/[id]` — Mentor one-to-one only
 - `/my-bookings`
 - `/my-study-groups`
+- `/messages` — notifications, cancellation reasons and reminders
 - `/profile`
 - `/settings`
 
@@ -117,6 +120,7 @@ A Study Group session is **not** booked once per member. If Team 4 has 11 member
 - `/mentor/availability`
 - `/mentor/study-groups`
 - `/mentor/study-groups/[id]`
+- `/mentor/messages`
 - `/mentor/profile`
 
 ## Database model
@@ -131,6 +135,12 @@ bookings
 mentor_availability_preferences
 study_group_members
 study_group_sessions
+study_group_schedule_preferences
+study_group_attendance
+study_group_waitlist
+notifications
+user_preferences
+booking_reschedule_requests
 ```
 
 ### One-to-one mentorship
@@ -168,6 +178,7 @@ Run migrations in this order:
 ```text
 supabase/migrations/20260901_mentor_portal.sql
 supabase/migrations/20260902_study_groups.sql
+supabase/migrations/20260902_workflow_notifications_settings.sql
 ```
 
 `20260901_mentor_portal.sql` now also safely adds/backfills the live `profiles.full_name`, `profiles.email` and `profiles.role` fields if an older database is missing them.
@@ -187,6 +198,34 @@ supabase/migrations/20260902_study_groups.sql
 - protection that prevents Study Groups from using the one-to-one booking RPC.
 
 For a **brand-new** Supabase project, `supabase/schema.sql` is the complete fresh-install reference.
+
+
+## Workflow enhancements — 2026-09-02
+
+The final workflow patch keeps the existing BookIt design while extending behaviour:
+
+- new one-to-one bookings start as `pending`;
+- the selected slot is reserved while the mentor reviews the request;
+- the mentor can manually confirm or cancel a pending request;
+- mentor cancellations require a reason and the mentee receives that reason;
+- mentees can request a different available time instead of cancelling and starting over;
+- mentors can approve or decline reschedule requests;
+- mentor Availability includes **Clear Open Availability**, which preserves booked slots;
+- Study Groups support recurring preferred days/times plus one-off sessions;
+- recurring Study Group generation checks mentor schedule conflicts;
+- Study Group session cancellation requires a reason and notifies active members;
+- Study Group attendance is available after completed sessions;
+- full Study Groups support a waitlist and automatic promotion when space opens;
+- `/messages` and `/mentor/messages` are notification centres with unread state and history;
+- Settings include Light/Dark/System theme, notification preferences, reminders, password changes and global sign-out.
+
+For an existing Supabase project, apply only:
+
+```text
+supabase/migrations/20260902_workflow_notifications_settings.sql
+```
+
+after the mentor and Study Group migrations. Do not run `schema.sql` over an existing live database.
 
 ## Assigning a mentor role
 
@@ -287,6 +326,6 @@ npm run build
 npm run dev
 ```
 
-The release was statically checked with TypeScript and ESLint. The final production build should still be run on the project machine because a Linux SWC package could not be downloaded in the offline artifact environment.
+The release patch was syntax-checked across all TypeScript/TSX files, local import/export paths were checked, and frontend RPC names were cross-checked against the SQL migrations. A full `npm run typecheck`, `npm run lint`, and `npm run build` must still be run on the project machine because this offline artifact environment could not complete dependency installation.
 
 See `docs/CROSS_ROLE_TESTING.md` for the end-to-end test checklist.

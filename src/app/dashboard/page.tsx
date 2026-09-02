@@ -135,8 +135,10 @@ export default async function DashboardPage() {
     bookings
       .filter(
         (booking) =>
-          booking.status ===
-            "confirmed" &&
+          (booking.status ===
+            "confirmed" ||
+            booking.status ===
+            "pending") &&
           new Date(
             booking.end_time
           ).getTime() >= now

@@ -119,6 +119,98 @@ export async function deleteMentorAvailabilitySlotAction(slotId: string): Promis
   return { success: true, message: "Availability removed." };
 }
 
+export async function clearMentorOpenAvailabilityAction(resourceId: string): Promise<MentorActionResult> {
+  const auth = await requireMentor();
+  if (auth.error || !auth.user) return { success: false, error: auth.error ?? "Mentor access is required." };
+  if (!(await ownsResource(auth.supabase, auth.user.id, resourceId))) {
+    return { success: false, error: "You can only manage your own availability." };
+  }
+
+  const { data, error } = await auth.supabase.rpc("mentor_clear_open_availability", {
+    p_resource_id: resourceId,
+  });
+
+  if (error) return { success: false, error: error.message.replace(/_/g, " ") };
+
+  const count = Number(data ?? 0);
+  revalidatePath("/mentor/availability");
+  revalidatePath("/mentor/dashboard");
+  revalidatePath(`/resources/${resourceId}`);
+
+  return {
+    success: true,
+    count,
+    message: count
+      ? `${count} future open availability slot${count === 1 ? "" : "s"} removed. Booked sessions were kept.`
+      : "There were no future open availability slots to remove.",
+  };
+}
+
+export async function mentorConfirmBookingAction(bookingId: string): Promise<MentorActionResult> {
+  if (!bookingId) return { success: false, error: "Booking id is required." };
+
+  const auth = await requireMentor();
+  if (auth.error || !auth.user) return { success: false, error: auth.error ?? "Mentor access is required." };
+
+  const { data, error } = await auth.supabase.rpc("mentor_confirm_booking", {
+    p_booking_id: bookingId,
+  });
+
+  if (error || data !== true) {
+    return {
+      success: false,
+      error: error?.message.replace(/_/g, " ") ?? "Unable to confirm the session.",
+    };
+  }
+
+  revalidatePath("/mentor/sessions");
+  revalidatePath("/mentor/dashboard");
+  revalidatePath("/my-bookings");
+  revalidatePath("/dashboard");
+
+  return {
+    success: true,
+    message: "Session confirmed. The mentee has been notified.",
+  };
+}
+
+export async function mentorRespondRescheduleAction(
+  requestId: string,
+  approve: boolean,
+  responseReason = ""
+): Promise<MentorActionResult> {
+  if (!requestId) return { success: false, error: "Reschedule request id is required." };
+
+  const auth = await requireMentor();
+  if (auth.error || !auth.user) return { success: false, error: auth.error ?? "Mentor access is required." };
+
+  const { data, error } = await auth.supabase.rpc("mentor_respond_reschedule", {
+    p_request_id: requestId,
+    p_approve: approve,
+    p_response_reason: responseReason.trim() || null,
+  });
+
+  if (error || data !== true) {
+    return {
+      success: false,
+      error: error?.message.replace(/_/g, " ") ?? "Unable to respond to the reschedule request.",
+    };
+  }
+
+  revalidatePath("/mentor/sessions");
+  revalidatePath("/mentor/dashboard");
+  revalidatePath("/mentor/availability");
+  revalidatePath("/my-bookings");
+  revalidatePath("/dashboard");
+
+  return {
+    success: true,
+    message: approve
+      ? "Reschedule approved. The mentee has been notified."
+      : "Reschedule request declined. The mentee has been notified.",
+  };
+}
+
 export async function toggleMentorAvailabilityAction(resourceId: string, acceptingBookings: boolean): Promise<MentorActionResult> {
   const auth = await requireMentor();
   if (auth.error || !auth.user) return { success: false, error: auth.error ?? "Mentor access is required." };

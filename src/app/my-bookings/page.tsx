@@ -171,7 +171,7 @@ function MyBookingsContent() {
     useMemo(() => {
       /*
         Until currentTime is available,
-        confirmed bookings remain in Upcoming.
+        pending/confirmed bookings remain in Upcoming.
       */
 
       const upcomingBookings =
@@ -182,7 +182,9 @@ function MyBookingsContent() {
             ) => {
               if (
                 booking.status !==
-                "confirmed"
+                "confirmed" &&
+                booking.status !==
+                "pending"
               ) {
                 return false;
               }
@@ -236,8 +238,10 @@ function MyBookingsContent() {
               }
 
               return (
-                booking.status ===
-                  "confirmed" &&
+                (booking.status ===
+                  "confirmed" ||
+                  booking.status ===
+                  "pending") &&
                 new Date(
                   booking.end_time
                 ).getTime() <
@@ -333,7 +337,7 @@ function MyBookingsContent() {
         </div>
 
         {/* =================================================
-            BOOKING CONFIRMED MESSAGE
+            BOOKING REQUEST SENT MESSAGE
         ================================================= */}
 
         {created && (
@@ -341,9 +345,9 @@ function MyBookingsContent() {
             role="status"
             className="mt-6 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700"
           >
-            Booking confirmed.
-            Your session is now
-            listed under Upcoming.
+            Booking request sent.
+            The selected time is reserved while
+            the mentor reviews your request.
           </div>
         )}
 

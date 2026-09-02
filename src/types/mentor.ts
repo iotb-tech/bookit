@@ -46,9 +46,16 @@ export interface MentorSession {
   availability_id: string | null;
   start_time: string;
   end_time: string;
-  status: "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled";
   cancelled_by: "mentee" | "mentor" | null;
   cancellation_reason: string | null;
+  confirmed_at: string | null;
+  confirmed_by: string | null;
+  reschedule_request_id: string | null;
+  proposed_slot_id: string | null;
+  proposed_start_time: string | null;
+  proposed_end_time: string | null;
+  reschedule_reason: string | null;
   created_at: string;
   mentee: {
     full_name: string;

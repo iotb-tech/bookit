@@ -59,6 +59,18 @@ export default async function MentorDashboardPage() {
   ).getTime();
   const tomorrowStart = todayStart + 86_400_000;
 
+  const pendingRequests = sessions
+    .filter(
+      (session) =>
+        session.status === "pending" &&
+        new Date(session.end_time).getTime() >= now
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.start_time).getTime() -
+        new Date(b.start_time).getTime()
+    );
+
   const upcoming = sessions
     .filter(
       (session) =>
@@ -82,9 +94,6 @@ export default async function MentorDashboardPage() {
       new Date(slot.start_time).getTime() >= now
   );
 
-  const uniqueMentees = new Set(
-    sessions.map((session) => session.user_id)
-  ).size;
 
   const completed = sessions.filter(
     (session) =>
@@ -124,8 +133,8 @@ export default async function MentorDashboardPage() {
       iconClass: "bg-amber-50 text-amber-600",
     },
     {
-      label: "Mentees Booked",
-      value: uniqueMentees,
+      label: "Pending Requests",
+      value: pendingRequests.length,
       icon: UserRoundCheck,
       iconClass: "bg-emerald-50 text-emerald-600",
     },

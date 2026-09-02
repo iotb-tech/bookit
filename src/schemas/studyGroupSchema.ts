@@ -25,7 +25,45 @@ export const studyGroupSessionSchema = z.object({
   meetingLink: optionalUrl.optional().default(""),
 });
 
+export const studyGroupSessionCancellationSchema = z.object({
+  sessionId: z.string().uuid(),
+  resourceId: z.string().uuid(),
+  reason: z.string().trim().min(3, "Tell members why the session is being cancelled.").max(300),
+});
+
 export const studyGroupMemberActionSchema = z.object({
   resourceId: z.string().uuid(),
   userId: z.string().uuid(),
+});
+
+export const studyGroupScheduleEntrySchema = z.object({
+  weekday: z.number().int().min(1).max(7),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/),
+}).superRefine((value, ctx) => {
+  if (value.endTime <= value.startTime) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["endTime"],
+      message: "End time must be after start time.",
+    });
+  }
+});
+
+export const studyGroupScheduleSchema = z.object({
+  resourceId: z.string().uuid(),
+  timezone: z.string().trim().min(1),
+  entries: z.array(studyGroupScheduleEntrySchema).max(14),
+});
+
+export const studyGroupScheduleGenerateSchema = z.object({
+  resourceId: z.string().uuid(),
+  weeksAhead: z.number().int().min(1).max(12),
+});
+
+export const studyGroupAttendanceSchema = z.object({
+  resourceId: z.string().uuid(),
+  sessionId: z.string().uuid(),
+  userId: z.string().uuid(),
+  status: z.enum(["present", "absent", "excused"]),
 });

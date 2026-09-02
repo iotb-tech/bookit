@@ -1,6 +1,8 @@
 export type StudyGroupMemberStatus = "active" | "left" | "removed";
 export type StudyGroupMemberRole = "member" | "leader";
 export type StudyGroupSessionStatus = "scheduled" | "cancelled";
+export type StudyGroupWaitlistStatus = "waiting" | "promoted" | "left" | "removed";
+export type AttendanceStatus = "present" | "absent" | "excused";
 
 export interface StudyGroupSummary {
   capacity: number;
@@ -8,6 +10,8 @@ export interface StudyGroupSummary {
   membership_status: StudyGroupMemberStatus | null;
   can_join: boolean;
   is_owner: boolean;
+  waitlist_count: number;
+  waitlist_status: StudyGroupWaitlistStatus | null;
 }
 
 export interface StudyGroupMember {
@@ -27,8 +31,27 @@ export interface StudyGroupSession {
   meeting_link: string | null;
   status: StudyGroupSessionStatus;
   created_by: string;
+  cancellation_reason: string | null;
+  cancelled_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface StudyGroupSchedulePreference {
+  id: string;
+  resource_id: string;
+  weekday: number;
+  start_time: string;
+  end_time: string;
+  timezone: string;
+  active: boolean;
+}
+
+export interface StudyGroupAttendance {
+  session_id: string;
+  user_id: string;
+  status: AttendanceStatus;
+  marked_at: string;
 }
 
 export interface StudyGroupRecord {
@@ -54,4 +77,5 @@ export interface MyStudyGroup extends StudyGroupRecord {
   membership_status: StudyGroupMemberStatus;
   joined_at: string;
   upcoming_sessions: StudyGroupSession[];
+  regular_schedule: StudyGroupSchedulePreference[];
 }

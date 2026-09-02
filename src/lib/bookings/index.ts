@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Booking } from "@/types/booking";
 
 const ENHANCED_SELECT =
-  "id, resource_id, user_id, availability_id, start_time, end_time, status, cancelled_by, cancellation_reason, cancelled_at, created_at, resources(name, type, duration_minutes, meeting_link)";
+  "id, resource_id, user_id, availability_id, start_time, end_time, status, cancelled_by, cancellation_reason, cancelled_at, confirmed_at, confirmed_by, created_at, resources(name, type, duration_minutes, meeting_link)";
 
 const BASE_SELECT =
   "id, resource_id, user_id, availability_id, start_time, end_time, status, created_at, resources(name)";
@@ -33,7 +33,9 @@ function normalizeBooking(
     status:
       row.status === "cancelled"
         ? "cancelled"
-        : "confirmed",
+        : row.status === "pending"
+          ? "pending"
+          : "confirmed",
     cancelled_by:
       row.cancelled_by === "mentor" || row.cancelled_by === "mentee"
         ? row.cancelled_by
@@ -46,6 +48,10 @@ function normalizeBooking(
       typeof row.cancelled_at === "string"
         ? row.cancelled_at
         : null,
+    confirmed_at:
+      typeof row.confirmed_at === "string" ? row.confirmed_at : null,
+    confirmed_by:
+      typeof row.confirmed_by === "string" ? row.confirmed_by : null,
     created_at: String(row.created_at),
     resource: resource
       ? {

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+
+import ThemeInitializer from "@/components/theme/ThemeInitializer";
 import QueryProvider from "@/providers/QueryProvider";
 import "./globals.css";
 
@@ -14,8 +16,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-white antialiased">
+        <ThemeInitializer />
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

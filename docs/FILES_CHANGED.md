@@ -1,67 +1,74 @@
-# BookIt Mentor + Study Group Update — Files Changed
+# BookIt Workflow Enhancements Patch — Files Changed
 
-This release is based on the supplied `BOOKIT(6)` design. Existing visual patterns were preserved. The one-to-one Mentor booking experience remains intact; Study Groups now use membership and shared sessions.
+Baseline: `BOOKIT(7).zip`
+
+The current visual design is preserved. This patch changes workflow, security, scheduling, notifications and settings.
 
 ## New files
 
-### Database
-- `supabase/migrations/20260902_study_groups.sql`
+- `docs/PATCH_APPLY_GUIDE.md`
+- `docs/VERIFICATION_REPORT.md`
+- `src/app/mentor/messages/page.tsx`
+- `src/components/notifications/NotificationBadge.tsx`
+- `src/components/notifications/NotificationsPanel.tsx`
+- `src/components/settings/AccountSettings.tsx`
+- `src/components/ui/AutoDismissAlert.tsx`
+- `src/hooks/useNotifications.ts`
+- `src/types/notification.ts`
+- `supabase/migrations/20260902_workflow_notifications_settings.sql`
 
-### Mentee Study Groups
-- `src/app/my-study-groups/page.tsx`
-- `src/components/study-groups/MyStudyGroupsList.tsx`
-- `src/components/resources/StudyGroupJoinPanel.tsx`
-- `src/hooks/useStudyGroupSummary.ts`
-
-### Mentor Study Groups
-- `src/app/mentor/study-groups/page.tsx`
-- `src/app/mentor/study-groups/[id]/page.tsx`
-- `src/components/mentor/MentorStudyGroupsList.tsx`
-- `src/components/mentor/MentorStudyGroupDetail.tsx`
-
-### Study Group data/actions
-- `src/lib/study-groups/index.ts`
-- `src/lib/study-groups/actions.ts`
-- `src/schemas/studyGroupSchema.ts`
-- `src/types/studyGroup.ts`
-
-### Documentation
-- `docs/STUDY_GROUP_UPDATE.md`
-
-## Existing files updated in this phase
+## Updated files
 
 - `README.md`
 - `docs/CROSS_ROLE_TESTING.md`
-- `docs/FILES_CHANGED.md`
-- `supabase/schema.sql`
-- `supabase/migrations/20260901_mentor_portal.sql`
-- `src/app/book/[id]/page.tsx`
-- `src/app/mentor/sessions/page.tsx`
-- `src/components/layout/AppShell.tsx`
+- `docs/IMPLEMENTATION_STEPS.md`
+- `src/app/dashboard/page.tsx`
+- `src/app/globals.css`
+- `src/app/layout.tsx`
+- `src/app/mentor/dashboard/page.tsx`
+- `src/app/mentor/study-groups/[id]/page.tsx`
+- `src/app/messages/page.tsx`
+- `src/app/my-bookings/page.tsx`
+- `src/app/my-study-groups/page.tsx`
+- `src/app/settings/page.tsx`
+- `src/components/booking/BookingCard.tsx`
+- `src/components/booking/BookingForm.tsx`
 - `src/components/layout/Sidebar.tsx`
-- `src/components/mentor/MentorAppShell.tsx`
-- `src/components/mentor/MentorProfileForm.tsx`
+- `src/components/mentor/MentorAvailabilityManager.tsx`
+- `src/components/mentor/MentorSessionsList.tsx`
 - `src/components/mentor/MentorSidebar.tsx`
-- `src/components/resources/ResourceCard.tsx`
-- `src/components/resources/ResourceDetails.tsx`
+- `src/components/mentor/MentorStudyGroupDetail.tsx`
+- `src/components/resources/StudyGroupJoinPanel.tsx`
+- `src/components/study-groups/MyStudyGroupsList.tsx`
+- `src/hooks/useBookings.ts`
+- `src/hooks/useStudyGroupSummary.ts`
+- `src/lib/bookings/actions.ts`
+- `src/lib/bookings/index.ts`
 - `src/lib/mentor/actions.ts`
 - `src/lib/mentor/index.ts`
-- `src/lib/resources.ts`
+- `src/lib/study-groups/actions.ts`
+- `src/lib/study-groups/index.ts`
+- `src/schemas/bookingSchema.ts`
+- `src/schemas/mentorSchema.ts`
+- `src/schemas/studyGroupSchema.ts`
+- `src/types/booking.ts`
 - `src/types/database.ts`
 - `src/types/mentor.ts`
-- `src/types/resource.ts`
+- `src/types/studyGroup.ts`
+- `supabase/schema.sql`
 
-## Functional changes
+## Main functional changes
 
-1. Mentor Sessions resolves real mentee name/email through a guarded database function.
-2. Study Groups have capacity and membership.
-3. Study Group cards use **Join Group** rather than Mentor booking language.
-4. Study Group details use Join Group membership instead of selecting an exclusive slot.
-5. Mentees have **My Study Groups**.
-6. Mentors have **Study Groups** management.
-7. Mentors can create/edit/archive groups.
-8. Mentors can schedule shared group sessions.
-9. Owning mentors can see group member names/emails.
-10. Members can leave; owning mentors can remove members.
-11. Mentor profiles use deactivate/reactivate rather than hard delete.
-12. One-to-one Mentor booking stays on the existing availability/booking flow.
+1. Study Group breadcrumb/PageBadge spacing corrected on mentee and mentor pages.
+2. Success notifications auto-dismiss after roughly four seconds.
+3. Mentor can clear all future open availability without deleting booked sessions.
+4. New one-to-one bookings are pending until the owning mentor confirms them.
+5. Mentor cancellation requires a reason and notifies the mentee.
+6. Mentee can request a reschedule; mentor can approve/decline.
+7. Messages now acts as a notification centre for both roles.
+8. Settings include Light/Dark/System theme, notification preferences, reminders, password change and global sign-out.
+9. Study Groups support recurring days/times and conflict-aware session generation.
+10. Study Group session cancellation requires a reason.
+11. Study Group attendance is supported.
+12. Full Study Groups support waitlists with automatic promotion.
+13. Existing one-to-one mentor booking structure remains separate from Study Group membership.

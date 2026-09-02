@@ -3,8 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
+  studyGroupAttendanceSchema,
   studyGroupMemberActionSchema,
+  studyGroupScheduleGenerateSchema,
+  studyGroupScheduleSchema,
   studyGroupSchema,
+  studyGroupSessionCancellationSchema,
   studyGroupSessionSchema,
 } from "@/schemas/studyGroupSchema";
 
@@ -22,6 +26,11 @@ function friendlyError(message: string) {
     "ACTIVE MEMBERSHIP NOT FOUND": "An active study-group membership could not be found.",
     "RESOURCE NOT OWNED": "You can only manage study groups that you own.",
     "MENTOR REQUIRED": "Mentor access is required.",
+    "MENTOR SCHEDULE CONFLICT": "That time conflicts with another one-to-one or study-group session.",
+    "CANCELLATION REASON REQUIRED": "Tell members why the session is being cancelled.",
+    "WAITLIST ENTRY NOT FOUND": "You are not currently on this study-group waitlist.",
+    "SPACE AVAILABLE JOIN GROUP": "A space is available now, so join the study group directly.",
+    "ALREADY GROUP MEMBER": "You are already a member of this study group.",
   };
   return lookup[normalized] ?? normalized.charAt(0) + normalized.slice(1).toLowerCase();
 }
@@ -229,65 +238,202 @@ export async function createStudyGroupSessionAction(input: unknown): Promise<Stu
   }
 
   const auth = await requireMentor();
-  if (auth.error || !auth.user) return { success: false, error: auth.error ?? "Mentor access is required." };
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Mentor access is required." };
+  }
 
-  const start = new Date(parsed.data.startIso);
-  const end = new Date(parsed.data.endIso);
-  if (start.getTime() <= Date.now()) return { success: false, error: "Group sessions must start in the future." };
-  if (end.getTime() <= start.getTime()) return { success: false, error: "End time must be after start time." };
+  const { data, error } = await auth.supabase.rpc(
+    "mentor_create_study_group_session",
+    {
+      p_resource_id: parsed.data.resourceId,
+      p_start: parsed.data.startIso,
+      p_end: parsed.data.endIso,
+      p_meeting_link: parsed.data.meetingLink || null,
+    }
+  );
 
-  const { data: resource } = await auth.supabase
-    .from("resources")
-    .select("id, owner_id, type, meeting_link, archived_at")
-    .eq("id", parsed.data.resourceId)
-    .eq("owner_id", auth.user.id)
-    .maybeSingle();
-
-  const normalizedType = String(resource?.type ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
-  if (!resource || normalizedType !== "study_group") return { success: false, error: "You can only schedule sessions for your own study groups." };
-  if (resource.archived_at) return { success: false, error: "Restore the study group before scheduling a new session." };
-
-  const { data: conflicts, error: conflictError } = await auth.supabase
-    .from("study_group_sessions")
-    .select("id")
-    .eq("resource_id", parsed.data.resourceId)
-    .eq("status", "scheduled")
-    .lt("start_time", parsed.data.endIso)
-    .gt("end_time", parsed.data.startIso)
-    .limit(1);
-
-  if (conflictError) return { success: false, error: conflictError.message };
-  if ((conflicts ?? []).length) return { success: false, error: "That time overlaps another scheduled group session." };
-
-  const { error } = await auth.supabase.from("study_group_sessions").insert({
-    resource_id: parsed.data.resourceId,
-    start_time: parsed.data.startIso,
-    end_time: parsed.data.endIso,
-    meeting_link: parsed.data.meetingLink || resource.meeting_link || null,
-    status: "scheduled",
-    created_by: auth.user.id,
-  });
-
-  if (error) return { success: false, error: error.message };
+  if (error || !data) {
+    return {
+      success: false,
+      error: friendlyError(error?.message ?? "Unable to schedule this group session."),
+    };
+  }
 
   revalidateStudyGroup(parsed.data.resourceId);
   return { success: true, message: "Group session scheduled for all active members." };
 }
 
-export async function cancelStudyGroupSessionAction(sessionId: string, resourceId: string): Promise<StudyGroupActionResult> {
+export async function cancelStudyGroupSessionAction(input: unknown): Promise<StudyGroupActionResult> {
+  const parsed = studyGroupSessionCancellationSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Check the cancellation details." };
+  }
+
   const auth = await requireMentor();
-  if (auth.error || !auth.user) return { success: false, error: auth.error ?? "Mentor access is required." };
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Mentor access is required." };
+  }
 
-  const { error } = await auth.supabase
-    .from("study_group_sessions")
-    .update({ status: "cancelled", updated_at: new Date().toISOString() })
-    .eq("id", sessionId)
-    .eq("resource_id", resourceId);
+  const { data, error } = await auth.supabase.rpc(
+    "mentor_cancel_study_group_session",
+    {
+      p_session_id: parsed.data.sessionId,
+      p_resource_id: parsed.data.resourceId,
+      p_reason: parsed.data.reason,
+    }
+  );
 
-  if (error) return { success: false, error: error.message };
+  if (error || data !== true) {
+    return {
+      success: false,
+      error: friendlyError(error?.message ?? "Unable to cancel this group session."),
+    };
+  }
+
+  revalidateStudyGroup(parsed.data.resourceId);
+  return {
+    success: true,
+    message: "Group session cancelled. Active members were notified with your reason.",
+  };
+}
+
+export async function joinStudyGroupWaitlistAction(resourceId: string): Promise<StudyGroupActionResult> {
+  const auth = await requireUser();
+  if (!auth.user) return { success: false, error: "Please log in first." };
+
+  const { data, error } = await auth.supabase.rpc("join_study_group_waitlist", {
+    p_resource_id: resourceId,
+  });
+
+  if (error || data !== true) {
+    return { success: false, error: friendlyError(error?.message ?? "Unable to join the waitlist.") };
+  }
 
   revalidateStudyGroup(resourceId);
-  return { success: true, message: "Group session cancelled." };
+  return { success: true, message: "You joined the study-group waitlist." };
+}
+
+export async function leaveStudyGroupWaitlistAction(resourceId: string): Promise<StudyGroupActionResult> {
+  const auth = await requireUser();
+  if (!auth.user) return { success: false, error: "Please log in first." };
+
+  const { data, error } = await auth.supabase.rpc("leave_study_group_waitlist", {
+    p_resource_id: resourceId,
+  });
+
+  if (error || data !== true) {
+    return { success: false, error: friendlyError(error?.message ?? "Unable to leave the waitlist.") };
+  }
+
+  revalidateStudyGroup(resourceId);
+  return { success: true, message: "You left the study-group waitlist." };
+}
+
+export async function saveStudyGroupScheduleAction(input: unknown): Promise<StudyGroupActionResult> {
+  const parsed = studyGroupScheduleSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Check the regular schedule." };
+  }
+
+  const auth = await requireMentor();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Mentor access is required." };
+  }
+
+  const { data: resource } = await auth.supabase
+    .from("resources")
+    .select("id")
+    .eq("id", parsed.data.resourceId)
+    .eq("owner_id", auth.user.id)
+    .maybeSingle();
+
+  if (!resource) return { success: false, error: "You can only manage your own study group." };
+
+  const { error: deleteError } = await auth.supabase
+    .from("study_group_schedule_preferences")
+    .delete()
+    .eq("resource_id", parsed.data.resourceId);
+
+  if (deleteError) return { success: false, error: deleteError.message };
+
+  if (parsed.data.entries.length) {
+    const { error: insertError } = await auth.supabase
+      .from("study_group_schedule_preferences")
+      .insert(
+        parsed.data.entries.map((entry) => ({
+          resource_id: parsed.data.resourceId,
+          weekday: entry.weekday,
+          start_time: entry.startTime,
+          end_time: entry.endTime,
+          timezone: parsed.data.timezone,
+          active: true,
+        }))
+      );
+
+    if (insertError) return { success: false, error: insertError.message };
+  }
+
+  revalidateStudyGroup(parsed.data.resourceId);
+  return { success: true, message: "Regular study-group days and times saved." };
+}
+
+export async function generateStudyGroupSessionsAction(input: unknown): Promise<StudyGroupActionResult> {
+  const parsed = studyGroupScheduleGenerateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Choose how many weeks to generate." };
+  }
+
+  const auth = await requireMentor();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Mentor access is required." };
+  }
+
+  const { data, error } = await auth.supabase.rpc(
+    "mentor_generate_study_group_sessions",
+    {
+      p_resource_id: parsed.data.resourceId,
+      p_weeks_ahead: parsed.data.weeksAhead,
+    }
+  );
+
+  if (error) {
+    return { success: false, error: friendlyError(error.message) };
+  }
+
+  revalidateStudyGroup(parsed.data.resourceId);
+  return {
+    success: true,
+    message: `${Number(data ?? 0)} group session${Number(data ?? 0) === 1 ? "" : "s"} created. Conflicting times were skipped.`,
+  };
+}
+
+export async function markStudyGroupAttendanceAction(input: unknown): Promise<StudyGroupActionResult> {
+  const parsed = studyGroupAttendanceSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Check the attendance entry." };
+  }
+
+  const auth = await requireMentor();
+  if (auth.error || !auth.user) {
+    return { success: false, error: auth.error ?? "Mentor access is required." };
+  }
+
+  const { data, error } = await auth.supabase.rpc(
+    "mentor_mark_study_group_attendance",
+    {
+      p_resource_id: parsed.data.resourceId,
+      p_session_id: parsed.data.sessionId,
+      p_user_id: parsed.data.userId,
+      p_status: parsed.data.status,
+    }
+  );
+
+  if (error || data !== true) {
+    return { success: false, error: friendlyError(error?.message ?? "Unable to save attendance.") };
+  }
+
+  revalidateStudyGroup(parsed.data.resourceId);
+  return { success: true, message: "Attendance updated." };
 }
 
 export async function removeStudyGroupMemberAction(input: unknown): Promise<StudyGroupActionResult> {

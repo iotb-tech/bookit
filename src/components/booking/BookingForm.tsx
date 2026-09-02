@@ -150,7 +150,7 @@ export default function BookingForm({
       : null;
 
   /* =======================================================
-     CONFIRM BOOKING
+     REQUEST BOOKING
   ======================================================= */
 
   const handleBooking = () => {
@@ -209,7 +209,7 @@ export default function BookingForm({
 
       <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.05)] sm:p-8">
         <p className="text-sm font-semibold text-primary-700">
-          Confirm booking
+          Request booking
         </p>
 
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-800">
@@ -529,15 +529,13 @@ export default function BookingForm({
                 className="mt-6 flex h-12 w-full items-center justify-center rounded-lg bg-primary-600 px-5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-wait disabled:opacity-60"
               >
                 {createBooking.isPending
-                  ? "Confirming booking..."
-                  : "Confirm Booking"}
+                  ? "Sending request..."
+                  : "Send Booking Request"}
               </button>
 
               <p className="mt-3 text-center text-xs text-slate-400">
-                Your booking is
-                only created after
-                you click Confirm
-                Booking.
+                Your selected time is reserved after you send the request.
+                The mentor will confirm it manually.
               </p>
             </>
           )}

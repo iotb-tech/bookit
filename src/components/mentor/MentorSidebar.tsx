@@ -13,11 +13,13 @@ import {
   Clock3,
   LayoutDashboard,
   LogOut,
+  MessageSquare,
   UserRound,
   UsersRound,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import NotificationBadge from "@/components/notifications/NotificationBadge";
 
 const navigation = [
   {
@@ -39,6 +41,11 @@ const navigation = [
     label: "Availability",
     href: "/mentor/availability",
     icon: Clock3,
+  },
+  {
+    label: "Messages",
+    href: "/mentor/messages",
+    icon: MessageSquare,
   },
   {
     label: "Profile",
@@ -96,6 +103,7 @@ export default function MentorSidebar() {
             >
               <Icon size={19} strokeWidth={2} />
               <span>{label}</span>
+              {label === "Messages" && <NotificationBadge />}
             </Link>
           );
         })}

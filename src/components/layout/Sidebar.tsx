@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import NotificationBadge from "@/components/notifications/NotificationBadge";
 
 const navigation = [
   {
@@ -130,6 +131,8 @@ export default function Sidebar() {
                 <span>
                   {label}
                 </span>
+
+                {label === "Messages" && <NotificationBadge />}
               </Link>
             );
           }

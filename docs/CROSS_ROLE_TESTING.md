@@ -80,7 +80,7 @@ Optional security test:
 - [ ] Time selector only contains open slots for the selected date.
 - [ ] Continue to Booking passes the exact `slot` ID in the URL.
 - [ ] Booking confirmation shows the exact selected date and time.
-- [ ] Confirm Booking creates exactly one confirmed booking.
+- [ ] Send Booking Request creates exactly one pending booking and reserves the selected slot.
 - [ ] The booked availability slot changes from `available` to `booked`.
 - [ ] The booked slot disappears from the mentee's available time selector.
 
@@ -88,13 +88,13 @@ Optional security test:
 
 - [ ] Mentee A books a slot successfully.
 - [ ] Mentee B cannot book the same availability slot.
-- [ ] Two simultaneous requests for the same slot result in at most one confirmed booking.
+- [ ] Two simultaneous requests for the same slot result in at most one active pending/confirmed booking.
 - [ ] Back-to-back non-overlapping sessions remain possible.
 
 ## 10. Mentor Sessions / who booked me
 
 - [ ] Mentor A sees bookings only for Mentor A's owned resource.
-- [ ] Upcoming session shows mentee name and email.
+- [ ] Pending/Upcoming session shows the real mentee name and email.
 - [ ] Past completed sessions appear under Past.
 - [ ] Cancelled sessions appear under Cancelled.
 - [ ] If Mentor B exists, Mentor A cannot read Mentor B's sessions through the mentor UI/data policies.
@@ -141,11 +141,11 @@ Optional security test:
 
 ### Mentee
 
-`Mentee Login -> Dashboard -> Resources -> Mentor -> Choose Day -> Choose Time -> Confirm Booking -> My Bookings -> Cancel`
+`Mentee Login -> Dashboard -> Resources -> Mentor -> Choose Day -> Choose Time -> Send Booking Request -> My Bookings -> Pending -> Mentor Confirms/Declines`
 
 ### Mentor
 
-`Mentor Login -> Mentor Dashboard -> Profile -> Availability -> Generate Slots -> Sessions -> See Mentee -> Cancel if necessary -> Switch to Mentee View`
+`Mentor Login -> Mentor Dashboard -> Profile -> Availability -> Generate Slots -> Sessions -> Requests -> Confirm/Cancel -> Notifications -> Switch to Mentee View`
 
 ---
 
@@ -234,3 +234,75 @@ Optional security test:
 4. Confirm exact-slot database locking still prevents double-booking.
 5. Confirm mentee cancellation reopens a future one-to-one slot.
 6. Confirm mentor cancellation keeps the future one-to-one slot unavailable.
+
+
+## 15. Pending mentor confirmation
+
+- [ ] New one-to-one request is `pending`, not immediately confirmed.
+- [ ] The selected availability row becomes `booked` while pending.
+- [ ] Mentor sees the request under **Requests**.
+- [ ] Only the owning mentor can confirm it.
+- [ ] Confirm changes status to `confirmed` and creates a mentee notification.
+- [ ] Pending bookings remain visible to the mentee under Upcoming.
+
+## 16. Mentor cancellation reason
+
+- [ ] Mentor cannot cancel without entering a reason.
+- [ ] Cancel works for both pending and confirmed bookings.
+- [ ] Mentee sees the reason in My Bookings and Messages/Notifications.
+- [ ] Mentor-cancelled time becomes unavailable rather than automatically reopened.
+
+## 17. Rescheduling
+
+- [ ] Mentee can choose another currently available slot.
+- [ ] Proposed slot is reserved while mentor reviews the request.
+- [ ] Original booking remains unchanged until approval.
+- [ ] Mentor can approve or decline.
+- [ ] Approval releases the old slot and moves the booking to the proposed slot.
+- [ ] Decline releases the proposed slot.
+- [ ] Both outcomes create a mentee notification.
+
+## 18. Bulk mentor availability
+
+- [ ] **Clear Open Availability** removes future `available` and `unavailable` slots.
+- [ ] It never deletes a `booked` slot.
+- [ ] The confirmation modal shows how many open/booked slots are affected.
+
+## 19. Notifications and reminders
+
+- [ ] New booking request notifies the owning mentor.
+- [ ] Mentor confirmation notifies the mentee.
+- [ ] Mentor cancellation sends the reason.
+- [ ] Study Group schedule/cancellation notifications reach active members.
+- [ ] Unread badge appears beside Messages.
+- [ ] Mark one notification read works.
+- [ ] Mark all as read works.
+- [ ] Due reminders become visible at the user's selected lead time.
+
+## 20. Settings
+
+- [ ] Light, Dark and System theme options work.
+- [ ] Theme preference survives refresh.
+- [ ] Booking/study-group notification preference toggles save.
+- [ ] Reminder lead time saves.
+- [ ] Email/password user can verify current password and change password.
+- [ ] OAuth user can set a BookIt password without a current-password field.
+- [ ] Sign out of all devices logs the account out globally.
+
+## 21. Study Group regular schedule and conflict protection
+
+- [ ] Mentor can add multiple weekday/start/end rows.
+- [ ] Regular schedule saves.
+- [ ] Generate Sessions creates upcoming shared sessions.
+- [ ] A group session cannot overlap a pending/confirmed one-to-one session.
+- [ ] A group session cannot overlap another scheduled group session owned by the mentor.
+- [ ] Manual one-off group sessions use the same conflict protection.
+
+## 22. Group cancellations, attendance and waitlist
+
+- [ ] Cancelling a Study Group session requires a reason.
+- [ ] Active members receive the cancellation reason.
+- [ ] Completed group sessions appear in Attendance.
+- [ ] Mentor can mark Present, Absent or Excused.
+- [ ] Full group shows Join Waitlist.
+- [ ] Leaving/removing a member promotes the oldest waiting user when capacity opens.

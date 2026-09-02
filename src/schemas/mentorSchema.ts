@@ -35,5 +35,9 @@ export const mentorProfileSchema = z.object({
 
 export const mentorCancellationSchema = z.object({
   bookingId: z.string().min(1),
-  reason: z.string().trim().max(300).optional().default(""),
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Tell the mentee why the session is being cancelled.")
+    .max(300),
 });

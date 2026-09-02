@@ -23,6 +23,25 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+const WEEKDAY_LABELS: Record<number, string> = {
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+  6: "Saturday",
+  7: "Sunday",
+};
+
+function formatClock(value: string) {
+  const [hourValue, minuteValue] = value.split(":").map(Number);
+  const date = new Date(2000, 0, 1, hourValue || 0, minuteValue || 0);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export default function MyStudyGroupsList({ groups }: { groups: MyStudyGroup[] }) {
   const router = useRouter();
   const [selected, setSelected] = useState<MyStudyGroup | null>(null);
@@ -87,6 +106,26 @@ export default function MyStudyGroupsList({ groups }: { groups: MyStudyGroup[] }
                 </button>
               </div>
             </div>
+
+            {group.regular_schedule.length > 0 && (
+              <div className="mt-5 border-t border-slate-100 pt-5">
+                <p className="text-sm font-semibold text-slate-800">Regular Group Schedule</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  The mentor&apos;s preferred recurring days and times.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {group.regular_schedule.map((entry) => (
+                    <span
+                      key={entry.id}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600"
+                    >
+                      {WEEKDAY_LABELS[entry.weekday] ?? `Day ${entry.weekday}`} ·{" "}
+                      {formatClock(entry.start_time)} – {formatClock(entry.end_time)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-5 border-t border-slate-100 pt-5">
               <div className="flex items-center justify-between gap-3">

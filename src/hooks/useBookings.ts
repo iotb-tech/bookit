@@ -15,6 +15,7 @@ import {
 import {
   cancelBookingAction,
   createBookingAction,
+  requestBookingRescheduleAction,
 } from "@/lib/bookings/actions";
 
 import type {
@@ -103,6 +104,28 @@ export function useCancelBooking() {
             "resource-availability",
           ],
         }),
+      ]);
+    },
+  });
+}
+
+export function useRequestBookingReschedule() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: {
+      bookingId: string;
+      proposedSlotId: string;
+      reason?: string;
+    }) => requestBookingRescheduleAction(input),
+
+    onSuccess: async (result) => {
+      if (!result.success) return;
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["bookings"] }),
+        queryClient.invalidateQueries({ queryKey: ["resources"] }),
+        queryClient.invalidateQueries({ queryKey: ["resource-availability"] }),
       ]);
     },
   });

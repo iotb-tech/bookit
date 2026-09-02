@@ -1,4 +1,5 @@
 export type BookingStatus =
+  | "pending"
   | "confirmed"
   | "cancelled";
 
@@ -20,6 +21,8 @@ export interface Booking {
   cancelled_by?: "mentee" | "mentor" | null;
   cancellation_reason?: string | null;
   cancelled_at?: string | null;
+  confirmed_at?: string | null;
+  confirmed_by?: string | null;
   created_at: string;
   resource?: BookingResourceSummary | null;
 }

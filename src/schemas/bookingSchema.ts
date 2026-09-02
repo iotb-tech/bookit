@@ -32,3 +32,11 @@ export type BookingFormData =
 
 export type BookingFormValues =
   BookingRequest;
+
+export const bookingRescheduleSchema = z.object({
+  bookingId: z.string().min(1, "Booking is required."),
+  proposedSlotId: z.string().min(1, "Choose a new available time."),
+  reason: z.string().trim().max(300).optional().default(""),
+});
+
+export type BookingRescheduleRequest = z.infer<typeof bookingRescheduleSchema>;

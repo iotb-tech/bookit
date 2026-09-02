@@ -10,6 +10,7 @@ import {
 
 import {
   bookingRequestSchema,
+  bookingRescheduleSchema,
   type BookingRequest,
 } from "@/schemas/bookingSchema";
 
@@ -71,6 +72,18 @@ function friendlyBookingError(
     )
   ) {
     return "This resource is currently unavailable for booking.";
+  }
+
+  if (/MENTOR_GROUP_SESSION_CONFLICT|MENTOR_SCHEDULE_CONFLICT/i.test(message)) {
+    return "That time conflicts with another session on the mentor's schedule.";
+  }
+
+  if (/SAME_SLOT/i.test(message)) {
+    return "Choose a different available time for the reschedule request.";
+  }
+
+  if (/RESCHEDULE/i.test(message) && /NOT_FOUND|ACTIVE/i.test(message)) {
+    return "That reschedule request is no longer active.";
   }
 
   if (
@@ -288,4 +301,40 @@ export async function cancelBookingAction(
   return {
     success: true,
   };
+}
+
+export async function requestBookingRescheduleAction(
+  input: unknown
+): Promise<BookingActionResult> {
+  const parsed = bookingRescheduleSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Check the new session time.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return { success: false, error: "Please log in to manage bookings." };
+  }
+
+  const { error } = await supabase.rpc("request_booking_reschedule", {
+    p_booking_id: parsed.data.bookingId,
+    p_proposed_slot_id: parsed.data.proposedSlotId,
+    p_reason: parsed.data.reason || null,
+  });
+
+  if (error) {
+    return { success: false, error: friendlyBookingError(error) };
+  }
+
+  revalidatePath("/my-bookings");
+  revalidatePath("/dashboard");
+  revalidatePath("/mentor/sessions");
+  revalidatePath("/mentor/dashboard");
+  revalidatePath("/mentor/availability");
+
+  return { success: true };
 }

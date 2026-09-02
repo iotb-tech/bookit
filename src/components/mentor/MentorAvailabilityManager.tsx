@@ -3,11 +3,13 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, Clock3, Plus, RefreshCw, Trash2, Power } from "lucide-react";
+import AutoDismissAlert from "@/components/ui/AutoDismissAlert";
 import type { ResourceAvailability } from "@/types/availability";
 import type { MentorAvailabilityPreference, MentorResourceRecord } from "@/types/mentor";
 import {
   createMentorAvailabilitySlotAction,
   deleteMentorAvailabilitySlotAction,
+  clearMentorOpenAvailabilityAction,
   generateMentorAvailabilityAction,
   toggleMentorAvailabilityAction,
 } from "@/lib/mentor/actions";
@@ -48,6 +50,7 @@ export default function MentorAvailabilityManager({
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const [date, setDate] = useState("");
   const [singleStart, setSingleStart] = useState("09:00");
@@ -108,9 +111,12 @@ export default function MentorAvailabilityManager({
 
   return (
     <div className="space-y-6">
-      {(message || error) && (
-        <div className={`rounded-lg border px-4 py-3 text-sm ${error ? "border-red-100 bg-red-50 text-red-700" : "border-green-100 bg-green-50 text-green-700"}`}>
-          {error ?? message}
+      {message && (
+        <AutoDismissAlert message={message} onDismiss={() => setMessage(null)} />
+      )}
+      {error && (
+        <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
       )}
 
@@ -225,7 +231,19 @@ export default function MentorAvailabilityManager({
             <h2 className="font-semibold text-slate-900">Your availability</h2>
             <p className="mt-1 text-xs text-slate-400">{openCount} open slots · {bookedCount} booked slots</p>
           </div>
-          <span className="text-xs text-slate-400">Timezone: {resource.timezone || "Africa/Lagos"}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs text-slate-400">Timezone: {resource.timezone || "Africa/Lagos"}</span>
+            {openCount > 0 && (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => setShowClearModal(true)}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+              >
+                <Trash2 size={14} /> Clear Open Availability
+              </button>
+            )}
+          </div>
         </div>
 
         {visibleSlots.length === 0 ? (
@@ -253,6 +271,57 @@ export default function MentorAvailabilityManager({
           </div>
         )}
       </section>
+
+      {showClearModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="clear-availability-title"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-600">
+              Availability
+            </p>
+            <h2 id="clear-availability-title" className="mt-2 text-xl font-bold text-slate-900">
+              Clear open availability?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              This removes your future open slots in one action. Your {bookedCount} booked
+              session{bookedCount === 1 ? "" : "s"} will remain unchanged.
+            </p>
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-800">
+                {openCount} open slot{openCount === 1 ? "" : "s"} will be removed
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Booked sessions and their history are preserved.
+              </p>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => setShowClearModal(false)}
+                className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Keep Availability
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => {
+                  setShowClearModal(false);
+                  run(() => clearMentorOpenAvailabilityAction(resource.id));
+                }}
+                className="h-10 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {pending ? "Clearing..." : `Clear ${openCount} Slots`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

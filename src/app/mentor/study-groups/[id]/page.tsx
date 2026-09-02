@@ -17,8 +17,10 @@ export default async function MentorStudyGroupDetailPage({ params }: { params: P
     <MentorAppShell>
       <main className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
         <div className="mx-auto max-w-6xl">
-          <Link href="/mentor/study-groups" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-primary-700"><ArrowLeft size={17} /> Back to Study Groups</Link>
-          <PageBadge label="Study Group" />
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/mentor/study-groups" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-primary-700"><ArrowLeft size={17} /> Back to Study Groups</Link>
+            <PageBadge label="Study Group" />
+          </div>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-800">{detail.group.name}</h1>
@@ -27,7 +29,14 @@ export default async function MentorStudyGroupDetailPage({ params }: { params: P
             <span className={`self-start rounded-full px-3 py-1.5 text-xs font-semibold ${detail.group.archived_at ? "bg-slate-100 text-slate-600" : detail.group.status === "available" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{detail.group.archived_at ? "Archived" : detail.group.status === "available" ? "Open to members" : "Membership closed"}</span>
           </div>
           <div className="mt-8">
-            <MentorStudyGroupDetail group={detail.group} members={detail.members} sessions={detail.sessions} nowIso={new Date().toISOString()} />
+            <MentorStudyGroupDetail
+              group={detail.group}
+              members={detail.members}
+              sessions={detail.sessions}
+              schedules={detail.schedules}
+              attendance={detail.attendance}
+              nowIso={new Date().toISOString()}
+            />
           </div>
         </div>
       </main>

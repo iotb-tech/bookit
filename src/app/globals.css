@@ -36,3 +36,60 @@ textarea {
   background: #ddd0ff;
   color: #3a207d;
 }
+
+
+/* =========================================================
+   BOOKIT DARK THEME
+   Keeps the existing component design and spacing intact.
+========================================================= */
+.dark {
+  --background: #11131a;
+  --foreground: #eef2f7;
+  color-scheme: dark;
+}
+
+.dark body,
+.dark .bg-white,
+.dark .bg-\[\#fbfbfd\] {
+  background-color: #11131a !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100 {
+  background-color: #191d27 !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #eef2f7 !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-400 {
+  color: #aeb7c7 !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200 {
+  border-color: #2c3341 !important;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #161a23;
+  color: #eef2f7;
+  border-color: #343b4b;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #7f899a;
+}
+
+.dark .shadow-sm,
+.dark [class*="shadow-"] {
+  --tw-shadow-color: rgb(0 0 0 / 0.25);
+}
