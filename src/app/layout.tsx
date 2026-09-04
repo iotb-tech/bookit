@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import ThemeInitializer from "@/components/theme/ThemeInitializer";
+import SessionExpiryGuard from "@/components/auth/SessionExpiryGuard";
 import QueryProvider from "@/providers/QueryProvider";
 import "./globals.css";
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="min-h-screen bg-white antialiased">
         <ThemeInitializer />
+        <SessionExpiryGuard />
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

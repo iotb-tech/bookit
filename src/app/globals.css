@@ -93,3 +93,168 @@ textarea {
 .dark [class*="shadow-"] {
   --tw-shadow-color: rgb(0 0 0 / 0.25);
 }
+
+/* =========================================================
+   BOOKIT DARK MODE POLISH - 2026
+   ========================================================= */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f1219;
+  color: #f8fafc;
+}
+
+/* Main BookIt page backgrounds */
+html.dark main {
+  background-color: #0f1219;
+}
+
+html.dark .bg-white {
+  background-color: #11151d !important;
+}
+
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 {
+  background-color: rgba(17, 21, 29, 0.96) !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #151923 !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1b202b !important;
+}
+
+/* Light arbitrary backgrounds used by BookIt pages */
+html.dark [class*="bg-[#f"],
+html.dark [class*="bg-[#F"] {
+  background-color: #0f1219 !important;
+}
+
+/* Primary text */
+html.dark .text-slate-950,
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+/* Secondary text */
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #aeb8c8 !important;
+}
+
+html.dark .text-slate-400 {
+  color: #8591a3 !important;
+}
+
+/* BookIt borders */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300 {
+  border-color: #2b3240 !important;
+}
+
+/* Landing page navbar */
+html.dark header,
+html.dark nav {
+  border-color: #2b3240;
+}
+
+html.dark header.bg-white,
+html.dark nav.bg-white {
+  background-color: #11151d !important;
+}
+
+/* Form controls */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #11151d;
+  border-color: #343c4a;
+  color: #f8fafc;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #778397;
+}
+
+html.dark select option {
+  background-color: #11151d;
+  color: #f8fafc;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #8b5cf6;
+  outline: none;
+}
+
+/* BookIt purple */
+html.dark .text-primary-600,
+html.dark .text-primary-700,
+html.dark .text-primary-800 {
+  color: #8b5cf6 !important;
+}
+
+html.dark .bg-primary-50 {
+  background-color: rgba(109, 40, 217, 0.15) !important;
+}
+
+html.dark .bg-primary-100 {
+  background-color: rgba(109, 40, 217, 0.20) !important;
+}
+
+html.dark .border-primary-100,
+html.dark .border-primary-200 {
+  border-color: rgba(139, 92, 246, 0.32) !important;
+}
+
+/* Selected session/resource panels */
+html.dark .bg-primary-50\/40,
+html.dark .bg-primary-50\/50 {
+  background-color: rgba(109, 40, 217, 0.11) !important;
+}
+
+/* Status colours */
+html.dark .bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.13) !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.13) !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-red-50 {
+  background-color: rgba(244, 63, 94, 0.13) !important;
+}
+
+html.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.13) !important;
+}
+
+/* Notification cards */
+html.dark [class*="bg-primary-50/"] {
+  background-color: rgba(109, 40, 217, 0.10) !important;
+}
+
+html.dark [class*="shadow"] {
+  --tw-shadow-color: rgba(0, 0, 0, 0.30);
+}
+
+/* Auth/Login branding */
+html.dark .auth-brand,
+html.dark .bookit-brand {
+  color: #f8fafc;
+}

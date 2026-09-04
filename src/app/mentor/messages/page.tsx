@@ -1,24 +1,23 @@
 import MentorAppShell from "@/components/mentor/MentorAppShell";
-import NotificationsPanel from "@/components/notifications/NotificationsPanel";
+import NotificationsWorkspace from "@/components/notifications/NotificationsWorkspace";
 import PageBadge from "@/components/ui/PageBadge";
+
+export const dynamic =
+  "force-dynamic";
 
 export default function MentorMessagesPage() {
   return (
     <MentorAppShell>
-      <main className="px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
-        <div className="mx-auto max-w-6xl">
+      <main className="min-h-screen bg-[#fbfbfd] px-6 py-8 dark:bg-[#0f1219] sm:px-8 lg:px-10 lg:py-10">
+        <div className="mx-auto max-w-7xl">
           <PageBadge label="Messages" />
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-800">
-            Session notifications
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            New booking requests, mentee cancellations, reschedule requests and
-            study-group activity appear here.
-          </p>
 
-          <section className="mt-8">
-            <NotificationsPanel emptyHref="/mentor/dashboard" />
-          </section>
+          <div className="mt-4">
+            <NotificationsWorkspace
+              title="Session notifications"
+              description="New booking requests, mentee cancellations, reschedule requests and study-group activity appear here."
+            />
+          </div>
         </div>
       </main>
     </MentorAppShell>

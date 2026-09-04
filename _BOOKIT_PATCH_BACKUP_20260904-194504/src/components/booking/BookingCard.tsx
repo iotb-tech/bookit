@@ -187,13 +187,10 @@ export default function BookingCard({
     <>
       {rescheduleMessage && (
         <div className="mb-3">
-          {/* BOOKIT-RESCHEDULE-ALERT-ALIGNMENT */}
-<div className="px-4 pt-4 sm:px-5">
-  <AutoDismissAlert
+          <AutoDismissAlert
             message={rescheduleMessage}
             onDismiss={() => setRescheduleMessage(null)}
           />
-</div>
         </div>
       )}
 

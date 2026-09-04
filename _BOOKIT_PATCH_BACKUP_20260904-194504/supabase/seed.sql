@@ -426,25 +426,3 @@ begin
   end if;
 
 end $$;
-
--- =========================================================
--- BOOKIT SAMPLE RESOURCE ARCHIVE GUARD
--- Keeps legacy demo resources out of the public application
--- after a future seed while preserving their records.
--- =========================================================
-
-update public.resources
-set archived_at =
-  coalesce(
-    archived_at,
-    now()
-  )
-where lower(trim(name)) in (
-  lower('Abdulsalam Idris'),
-  lower('Adewuyi Awwal'),
-  lower('Balogun Waliyat'),
-  lower('Study Group: Team 1'),
-  lower('Study Group: Team 2'),
-  lower('Study Group: Team 3'),
-  lower('Study Group: Team 4')
-);

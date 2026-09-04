@@ -6,6 +6,7 @@ import { CalendarDays } from "lucide-react";
 
 import LoginForm from "@/components/auth/LoginForm";
 
+import SessionExpiredBanner from "@/components/auth/SessionExpiredBanner";
 export default function LoginPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fbfaff]">
@@ -39,7 +40,8 @@ export default function LoginPage() {
         <div className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-md">
             <Suspense fallback={<LoginSkeleton />}>
-              <LoginForm />
+              <SessionExpiredBanner />
+      <LoginForm />
             </Suspense>
           </div>
         </div>

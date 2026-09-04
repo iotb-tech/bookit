@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
+  CalendarX2,
   CheckCircle2,
   Clock3,
   Mail,
@@ -350,15 +351,24 @@ export default function MentorSessionsList({
           aria-labelledby="mentor-cancel-title"
         >
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-600">
-              Mentor cancellation
-            </p>
-            <h2
-              id="mentor-cancel-title"
-              className="mt-2 text-xl font-bold text-slate-900"
-            >
-              Cancel this session?
-            </h2>
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+                <CalendarX2 size={20} />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-400">
+                  Mentor cancellation
+                </p>
+
+                <h2
+                  id="mentor-cancel-title"
+                  className="mt-1 text-xl font-bold text-slate-900 dark:text-white"
+                >
+                  Cancel this session?
+                </h2>
+              </div>
+            </div>
             <p className="mt-2 text-sm leading-6 text-slate-500">
               Tell the mentee why you are cancelling. BookIt will send the reason
               to their Notifications page. This time will become unavailable.
