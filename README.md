@@ -1,331 +1,104 @@
 # BookIt
 
-BookIt is a full-stack mentorship and study-group platform built with Next.js and Supabase. It supports two related but different learning flows:
+BookIt is a mentor and Study Group scheduling platform developed by Group 4.
 
-1. **One-to-one mentorship** — a mentee chooses one real mentor availability slot and confirms a booking.
-2. **Study groups** — a mentee joins a group once, then every active member can attend the shared sessions scheduled for that group.
+The application provides one place for mentees to discover mentors and Study Groups, view availability, request sessions and manage their learning schedule. Mentors can manage availability, booking requests and Study Groups through a dedicated mentor portal.
 
-The existing BookIt visual design remains the source of truth. Mentor and study-group features use the same spacing, cards, typography, purple primary colour, borders and navigation style already used by the project.
+## Problem
 
-## Problem BookIt solves
+Mentor and peer-learning sessions are often coordinated through direct messages and group chats.
 
-Mentor sessions and group learning are often coordinated through messages. This creates uncertainty around availability, double-booking, group capacity and who is expected at a session.
+This creates several problems:
 
-BookIt solves this by giving mentees one place to find mentors and groups, giving mentors control over their schedule and groups, and making the database the final authority for booking, membership and capacity rules.
+- users cannot easily see when a mentor is available;
+- scheduling requires repeated messages;
+- conflicting bookings can occur;
+- mentors have to track sessions manually;
+- users do not have one place to manage upcoming and previous sessions.
 
-## User roles
+BookIt provides a shared scheduling workflow for mentors, mentees and Study Groups.
+
+## Problem Validation
+
+This section must contain only the actual findings collected by Group 4 during the project's user-validation exercise.
+
+The final submission should include:
+
+- number of participants;
+- who was interviewed or surveyed;
+- recurring scheduling problems identified;
+- how those findings affected the features implemented in BookIt.
+
+No assumed or generated survey findings should be added here.
+
+## Users
+
+BookIt currently supports two application roles:
 
 ### Mentee
 
 A mentee can:
 
-- sign up and log in with email/password;
-- use Google or GitHub OAuth;
-- browse Mentors and Study Groups;
-- book an exact one-to-one Mentor slot;
-- see and cancel personal bookings;
-- join a Study Group without consuming a one-to-one slot;
-- see joined groups under **My Study Groups**;
-- see shared upcoming group sessions and meeting links;
-- leave a Study Group.
+- create an account;
+- log in with email/password, Google or GitHub;
+- browse available mentors and Study Groups;
+- view mentor availability;
+- request a one-to-one session;
+- view pending, confirmed, past and cancelled bookings;
+- request a reschedule;
+- cancel a session;
+- join or leave a Study Group;
+- join a Study Group waitlist when capacity is full;
+- view Study Group schedules;
+- receive booking and Study Group notifications;
+- manage account and notification preferences.
 
 ### Mentor
 
 A mentor can:
 
-- use **Mentor Login** on the existing login card;
-- see a protected Mentor Dashboard;
-- see the real name and email of mentees who booked their one-to-one resource;
-- create one-off or weekly one-to-one availability;
-- pause/resume one-to-one bookings;
-- manage a mentor profile and meeting link;
-- cancel one-to-one sessions;
-- create Study Groups;
-- edit group name, headline, description, topics, capacity and meeting link;
-- open/close a group to new members;
-- see the real names/emails of members of groups they own;
-- remove a member;
-- schedule one shared session for all active members;
-- cancel a shared group session;
-- archive a group instead of deleting its history;
-- deactivate the Mentor Profile instead of hard-deleting it;
-- switch to Mentee View with the same account.
+- access the mentor portal;
+- manage open availability;
+- clear future open availability without deleting booked sessions;
+- review new booking requests;
+- confirm or cancel one-to-one sessions;
+- provide a cancellation reason;
+- approve or decline reschedule requests;
+- create and manage Study Groups;
+- manage Study Group members;
+- create recurring Study Group schedules;
+- generate Study Group sessions;
+- cancel Study Group sessions with a reason;
+- record attendance;
+- manage their profile;
+- use the mentee view when required.
 
-BookIt uses **one Supabase Auth system**. Selecting Mentor Login never promotes an account. Mentor access is controlled by `profiles.role = 'mentor'`.
+## Authentication
 
-## Mentor booking vs Study Group membership
+BookIt uses Supabase Authentication.
 
-```text
-ONE-TO-ONE MENTORSHIP
-Mentor availability
-      ↓
-Mentee chooses one slot
-      ↓
-Booking request becomes Pending
-      ↓
-Mentor confirms or cancels
-      ↓
-That exact slot stays reserved while active
+Supported sign-in methods are:
 
-STUDY GROUP
-Study Group
-      ↓
-Mentee clicks Join Group
-      ↓
-Membership created
-      ↓
-Mentor schedules one group session
-      ↓
-Every active member can attend
-```
+- email and password;
+- Google OAuth;
+- GitHub OAuth.
 
-A Study Group session is **not** booked once per member. If Team 4 has 11 members, the mentor schedules one Team 4 session and all 11 active members can see and attend it.
+All new users are created as mentees unless their role is changed to mentor through the application's role-management process.
 
-## Core technology
+BookIt also applies a 24-hour application session policy.
 
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- Tailwind CSS
-- Supabase Auth
-- Supabase PostgreSQL
-- Supabase Row Level Security
-- Supabase RPC / PostgreSQL functions
-- TanStack Query
-- React Hook Form
-- Zod
-- Lucide React
+Protected routes require an authenticated user.
 
-## Main routes
+## Booking Workflow
 
-### Mentee
-
-- `/`
-- `/login`
-- `/signup`
-- `/dashboard`
-- `/resources`
-- `/resources/[id]`
-- `/book/[id]` — Mentor one-to-one only
-- `/my-bookings`
-- `/my-study-groups`
-- `/messages` — notifications, cancellation reasons and reminders
-- `/profile`
-- `/settings`
-
-### Mentor
-
-- `/mentor/dashboard`
-- `/mentor/sessions` — one-to-one bookings
-- `/mentor/availability`
-- `/mentor/study-groups`
-- `/mentor/study-groups/[id]`
-- `/mentor/messages`
-- `/mentor/profile`
-
-## Database model
-
-Core tables:
+The one-to-one booking workflow is:
 
 ```text
-profiles
-resources
-resource_availability
-bookings
-mentor_availability_preferences
-study_group_members
-study_group_sessions
-study_group_schedule_preferences
-study_group_attendance
-study_group_waitlist
-notifications
-user_preferences
-booking_reschedule_requests
-```
-
-### One-to-one mentorship
-
-```text
-resources (Mentor)
-      ↓
-resource_availability
-      ↓
-bookings
-      ↓
-bookings.user_id → mentee
-```
-
-### Study Groups
-
-```text
-resources (Study Group)
-      ├── capacity
-      ├── owner_id → mentor
-      │
-      ├── study_group_members
-      │      └── user_id → member
-      │
-      └── study_group_sessions
-             └── one session shared by all active members
-```
-
-## Existing Supabase project — migrations
-
-For an **existing** BookIt Supabase project, do not run `schema.sql` over the live database.
-
-Run migrations in this order:
-
-```text
-supabase/migrations/20260901_mentor_portal.sql
-supabase/migrations/20260902_study_groups.sql
-supabase/migrations/20260902_workflow_notifications_settings.sql
-```
-
-`20260901_mentor_portal.sql` now also safely adds/backfills the live `profiles.full_name`, `profiles.email` and `profiles.role` fields if an older database is missing them.
-
-`20260902_study_groups.sql` adds:
-
-- Study Group capacity;
-- soft archive support;
-- `study_group_members`;
-- `study_group_sessions`;
-- atomic Join Group capacity checking;
-- Leave Group;
-- mentor member removal;
-- guarded group-member name/email lookup;
-- guarded real mentee name/email lookup for Mentor Sessions;
-- Study Group session RLS;
-- protection that prevents Study Groups from using the one-to-one booking RPC.
-
-For a **brand-new** Supabase project, `supabase/schema.sql` is the complete fresh-install reference.
-
-
-## Workflow enhancements — 2026-09-02
-
-The final workflow patch keeps the existing BookIt design while extending behaviour:
-
-- new one-to-one bookings start as `pending`;
-- the selected slot is reserved while the mentor reviews the request;
-- the mentor can manually confirm or cancel a pending request;
-- mentor cancellations require a reason and the mentee receives that reason;
-- mentees can request a different available time instead of cancelling and starting over;
-- mentors can approve or decline reschedule requests;
-- mentor Availability includes **Clear Open Availability**, which preserves booked slots;
-- Study Groups support recurring preferred days/times plus one-off sessions;
-- recurring Study Group generation checks mentor schedule conflicts;
-- Study Group session cancellation requires a reason and notifies active members;
-- Study Group attendance is available after completed sessions;
-- full Study Groups support a waitlist and automatic promotion when space opens;
-- `/messages` and `/mentor/messages` are notification centres with unread state and history;
-- Settings include Light/Dark/System theme, notification preferences, reminders, password changes and global sign-out.
-
-For an existing Supabase project, apply only:
-
-```text
-supabase/migrations/20260902_workflow_notifications_settings.sql
-```
-
-after the mentor and Study Group migrations. Do not run `schema.sql` over an existing live database.
-
-## Assigning a mentor role
-
-The mentor first creates a normal BookIt account. An authorised administrator then promotes the account using Supabase Auth as the trusted email source:
-
-```sql
-update public.profiles p
-set
-  role = 'mentor',
-  updated_at = now()
-from auth.users u
-where p.id = u.id
-  and lower(u.email) = lower('mentor@example.com');
-```
-
-Verify:
-
-```sql
-select
-  p.id,
-  p.full_name,
-  u.email,
-  p.role
-from public.profiles p
-join auth.users u on u.id = p.id
-where lower(u.email) = lower('mentor@example.com');
-```
-
-## Real mentee names and emails
-
-Mentor Sessions no longer depends only on possibly incomplete old `profiles` rows. The guarded function:
-
-```text
-mentor_get_sessions(resource_id)
-```
-
-first verifies that the logged-in mentor owns the resource, then resolves the booking user against Supabase Auth and returns the real email plus the best available name.
-
-The same pattern is used for Study Group member management:
-
-```text
-mentor_get_study_group_members(resource_id)
-```
-
-Only the owning mentor can use it.
-
-## Study Group capacity
-
-Joining is handled by the database function:
-
-```text
-join_study_group(resource_id)
-```
-
-It locks the group row, checks whether the group is open and not archived, counts active members and refuses the join if capacity has been reached. This prevents two simultaneous joins from silently overfilling the group.
-
-## Study Group archive rule
-
-Study Groups are archived instead of hard-deleted:
-
-```text
-archived_at = timestamp
-status = unavailable
-```
-
-Archived groups disappear from normal Resources, stop accepting new members and keep their members/session history.
-
-## Mentor Profile deactivation
-
-Mentor Profile deactivation also uses soft deactivation. It hides the mentor resource and stops new bookings while keeping:
-
-- the Supabase account;
-- completed sessions;
-- cancelled sessions;
-- study groups;
-- historical records.
-
-It can later be reactivated.
-
-## Environment variables
-
-Create `.env.local` in the project root:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-```
-
-Do not commit `.env.local`.
-
-## Local verification
-
-```powershell
-npm install
-npm run typecheck
-npm run lint
-npm run build
-npm run dev
-```
-
-The release patch was syntax-checked across all TypeScript/TSX files, local import/export paths were checked, and frontend RPC names were cross-checked against the SQL migrations. A full `npm run typecheck`, `npm run lint`, and `npm run build` must still be run on the project machine because this offline artifact environment could not complete dependency installation.
-
-See `docs/CROSS_ROLE_TESTING.md` for the end-to-end test checklist.
+Mentee
+→ Resource
+→ Available Day
+→ Available Time
+→ Booking Request
+→ Pending Mentor Confirmation
+→ Mentor Confirms
+→ Confirmed Session
