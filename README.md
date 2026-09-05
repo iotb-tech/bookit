@@ -1029,6 +1029,7 @@ These migrations are shared integration files.
 ## Member 8 – Booking UI
 
 **Name:** Rufai Awwal
+
 Primary responsibility: booking interface, booking cards, booking actions, and booking-related interaction.
 
 ### Core Folder
@@ -1105,6 +1106,7 @@ Session-management navigation
 ## Member 10 – Cancellation
 
 **Name:** Yusuf AbdulRahman Opeyemi
+
 Primary responsibility: cancellation workflows, cancellation feedback, cancellation reasons, and related updates.
 
 ### Related Current Files
