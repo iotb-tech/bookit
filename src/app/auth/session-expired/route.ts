@@ -3,13 +3,24 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_ACTIVITY_COOKIE } from "@/lib/auth/sessionPolicy";
 import { createClient } from "@/lib/supabase/server";
 
+function isSafeProtectedRedirect(value: string | null) {
+  if (!value?.startsWith("/")) return false;
+
+  return !(
+    value === "/" ||
+    value.startsWith("/login") ||
+    value.startsWith("/signup") ||
+    value.startsWith("/auth")
+  );
+}
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
 
   try {
     await supabase.auth.signOut({ scope: "local" });
   } catch {
-    // Continue to the login page even if the session was already unavailable.
+    // Continue to login even if the session was already unavailable.
   }
 
   const url = new URL("/login", request.url);
@@ -23,8 +34,10 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("reason", reason);
   }
 
-  if (redirectTo?.startsWith("/")) {
-    url.searchParams.set("redirectTo", redirectTo);
+  // Never feed login/auth URLs back into redirectTo. That was the source
+  // of the recursively growing expired redirect URL.
+  if (isSafeProtectedRedirect(redirectTo)) {
+    url.searchParams.set("redirectTo", redirectTo!);
   }
 
   if (mode === "mentor") {

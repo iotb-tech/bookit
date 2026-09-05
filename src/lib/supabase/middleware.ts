@@ -80,6 +80,7 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isPublic = isPublicPath(pathname);
+  const isActivityRoute = pathname === "/auth/activity";
   const isMentorPath = pathname === "/mentor" || pathname.startsWith("/mentor/");
 
   if (!user && !isPublic) {
@@ -91,7 +92,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname !== "/auth/session-expired") {
+  // Enforce the security policy on protected pages and the authenticated
+  // activity endpoint. Login, signup, landing and session-expired routes
+  // must remain usable after a session has expired.
+  if (user && (!isPublic || isActivityRoute)) {
     const now = Date.now();
     const signedInAt = user.last_sign_in_at
       ? new Date(user.last_sign_in_at).getTime()

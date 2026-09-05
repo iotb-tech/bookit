@@ -14,6 +14,16 @@ import {
 } from "@/lib/auth/sessionPolicy";
 import { createClient } from "@/lib/supabase/client";
 
+const PUBLIC_EXACT_PATHS = ["/", "/login", "/signup"];
+const PUBLIC_PREFIXES = ["/auth"];
+
+function isPublicPath(pathname: string) {
+  return (
+    PUBLIC_EXACT_PATHS.includes(pathname) ||
+    PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  );
+}
+
 function readStoredNumber(key: string) {
   const value = window.localStorage.getItem(key);
   if (!value) return null;
@@ -26,9 +36,15 @@ function writeStoredNumber(key: string, value: number) {
   window.localStorage.setItem(key, String(value));
 }
 
+function clearStoredActivity() {
+  window.localStorage.removeItem(SESSION_ACTIVITY_STORAGE_KEY);
+  window.localStorage.removeItem(SESSION_ACTIVITY_PING_STORAGE_KEY);
+}
+
 export default function SessionExpiryGuard() {
   const pathname = usePathname();
   const expiringRef = useRef(false);
+  const publicPath = isPublicPath(pathname);
 
   const expireSession = useCallback(async (reason: SessionExpiryReason) => {
     if (expiringRef.current) return;
@@ -36,24 +52,46 @@ export default function SessionExpiryGuard() {
 
     const supabase = createClient();
 
-    window.localStorage.removeItem(SESSION_ACTIVITY_STORAGE_KEY);
-    window.localStorage.removeItem(SESSION_ACTIVITY_PING_STORAGE_KEY);
+    clearStoredActivity();
 
     try {
       await supabase.auth.signOut({ scope: "local" });
     } catch {
-      // The server expiry route below also clears the session when reachable.
+      // The server expiry route also clears the session when reachable.
     }
 
+    const currentPath = `${window.location.pathname}${window.location.search}`;
     const params = new URLSearchParams({
       reason,
-      redirectTo: `${window.location.pathname}${window.location.search}`,
+      redirectTo: currentPath,
     });
 
     window.location.replace(`/auth/session-expired?${params.toString()}`);
   }, []);
 
+  const redirectToLogin = useCallback(async () => {
+    if (expiringRef.current) return;
+    expiringRef.current = true;
+
+    clearStoredActivity();
+
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // Continue to login even when the local session is already unavailable.
+    }
+
+    const redirectTo = `${window.location.pathname}${window.location.search}`;
+    const params = new URLSearchParams({ redirectTo });
+    window.location.replace(`/login?${params.toString()}`);
+  }, []);
+
   const pingServerActivity = useCallback(async () => {
+    if (isPublicPath(window.location.pathname) || expiringRef.current) {
+      return;
+    }
+
     const now = Date.now();
     const lastPing = readStoredNumber(SESSION_ACTIVITY_PING_STORAGE_KEY);
 
@@ -74,17 +112,29 @@ export default function SessionExpiryGuard() {
         },
       });
 
-      if (response.status === 401 || response.redirected) {
-        await expireSession("inactive");
+      // If middleware expired the session, fetch follows the redirect chain.
+      // Use the final login URL instead of starting another expiry redirect.
+      if (response.redirected) {
+        clearStoredActivity();
+        window.location.replace(response.url);
+        return;
+      }
+
+      // A 401 means there is no authenticated server session anymore.
+      // Go directly to login; do not create another expiry redirect loop.
+      if (response.status === 401) {
+        await redirectToLogin();
       }
     } catch {
-      // A temporary network outage must not extend the server-side activity cookie.
-      // The client-side timer continues to enforce inactivity locally.
+      // A temporary network outage must not log the user out or extend
+      // the server-side activity cookie. The local inactivity timer remains.
     }
-  }, [expireSession]);
+  }, [redirectToLogin]);
 
   const verifySession = useCallback(async () => {
-    if (expiringRef.current) return;
+    if (expiringRef.current || isPublicPath(window.location.pathname)) {
+      return;
+    }
 
     const supabase = createClient();
     const {
@@ -92,6 +142,7 @@ export default function SessionExpiryGuard() {
     } = await supabase.auth.getSession();
 
     if (!session?.user) {
+      await redirectToLogin();
       return;
     }
 
@@ -122,10 +173,12 @@ export default function SessionExpiryGuard() {
     if (now - storedActivity >= INACTIVITY_TIMEOUT_MS) {
       await expireSession("inactive");
     }
-  }, [expireSession, pingServerActivity]);
+  }, [expireSession, pingServerActivity, redirectToLogin]);
 
   const recordUserActivity = useCallback(() => {
-    if (expiringRef.current) return;
+    if (expiringRef.current || isPublicPath(window.location.pathname)) {
+      return;
+    }
 
     const now = Date.now();
     const lastActivity = readStoredNumber(SESSION_ACTIVITY_STORAGE_KEY);
@@ -140,6 +193,15 @@ export default function SessionExpiryGuard() {
   }, [expireSession, pingServerActivity]);
 
   useEffect(() => {
+    // Session enforcement must never run on the landing page, login/signup,
+    // or authentication helper routes. This prevents an expired/signed-out
+    // user from repeatedly redirecting while trying to log in or switch mode.
+    if (publicPath) {
+      clearStoredActivity();
+      expiringRef.current = false;
+      return;
+    }
+
     const runVerification = () => {
       verifySession().catch(() => undefined);
     };
@@ -187,7 +249,7 @@ export default function SessionExpiryGuard() {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleFocus);
     };
-  }, [pathname, recordUserActivity, verifySession]);
+  }, [publicPath, recordUserActivity, verifySession]);
 
   return null;
 }
