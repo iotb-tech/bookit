@@ -730,7 +730,7 @@ Some files are shared across multiple features, especially authentication, booki
 
 ## Member 1 – Auth Core
 
-**Name:** 
+**Name:** Akintobi Abibat Olamide
 
 Primary responsibility: authentication infrastructure, Supabase clients, shared application authentication setup, and global session initialization.
 
@@ -775,7 +775,7 @@ Authentication-related changes to protected routes and session behaviour are sha
 
 ## Member 2 – Auth UI
 
-**Name:**
+**Name:** Aminu Fatimah Zahra
 
 Primary responsibility: login, signup, and the user-facing authentication experience.
 
@@ -811,7 +811,7 @@ Authentication page layout
 
 ## Member 3 – Auth Support / Testing
 
-**Name:** 
+**Name:** Mohammed Sofiyah
 
 Primary responsibility: authentication support, navigation behaviour, protected-route testing, session behaviour, and role-aware routing.
 
@@ -857,7 +857,7 @@ Authenticated navigation
 
 ## Member 4 – Resource Core
 
-**Name:** 
+**Name:** Abubakar Rashida
 
 Primary responsibility: resource pages, resource routing, resource loading, and resource discovery.
 
@@ -893,7 +893,7 @@ Study Group join entry point
 
 ## Member 5 – Resource UI
 
-**Name:** 
+**Name:** Jamiu AbdulQoyum Ifetayo
 
 Primary responsibility: resource presentation and reusable resource interface components.
 
@@ -981,7 +981,7 @@ These database files are shared integration files and are not treated as exclusi
 
 ## Member 7 – Booking Engine
 
-**Name:** 
+**Name:** Salahudeen Hassan Adeboye
 
 Primary responsibility: booking creation, booking validation, slot reservation, conflict protection, and rescheduling logic.
 
@@ -1028,7 +1028,7 @@ These migrations are shared integration files.
 
 ## Member 8 – Booking UI
 
-**Name:** 
+**Name:** Rufai Awwal
 Primary responsibility: booking interface, booking cards, booking actions, and booking-related interaction.
 
 ### Core Folder
@@ -1066,7 +1066,7 @@ Member 8 works closely with Members 7, 9, and 10 because booking actions appear 
 
 ## Member 9 – My Bookings Core
 
-**Name:** 
+**Name:** Yunus Ismail
 
 Primary responsibility: the My Bookings experience, booking history, and session-management presentation.
 
@@ -1104,7 +1104,7 @@ Session-management navigation
 
 ## Member 10 – Cancellation
 
-**Name:** 
+**Name:** Yusuf AbdulRahman Opeyemi
 Primary responsibility: cancellation workflows, cancellation feedback, cancellation reasons, and related updates.
 
 ### Related Current Files

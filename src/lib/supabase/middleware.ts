@@ -1,5 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+
+import {
+  ABSOLUTE_SESSION_LIFETIME_MS,
+  INACTIVITY_TIMEOUT_MS,
+  SESSION_ACTIVITY_COOKIE,
+  SESSION_ACTIVITY_COOKIE_MAX_AGE_SECONDS,
+  type SessionExpiryReason,
+} from "../auth/sessionPolicy";
 import { env } from "../env";
 
 const PUBLIC_EXACT_PATHS = ["/", "/login", "/signup"];
@@ -10,6 +18,36 @@ function isPublicPath(pathname: string) {
     PUBLIC_EXACT_PATHS.includes(pathname) ||
     PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   );
+}
+
+function setActivityCookie(response: NextResponse, timestamp: number) {
+  response.cookies.set(SESSION_ACTIVITY_COOKIE, String(timestamp), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_ACTIVITY_COOKIE_MAX_AGE_SECONDS,
+  });
+}
+
+function expiredRedirect(
+  request: NextRequest,
+  reason: SessionExpiryReason
+) {
+  const url = request.nextUrl.clone();
+  const { pathname, search } = request.nextUrl;
+  const isMentorPath = pathname === "/mentor" || pathname.startsWith("/mentor/");
+
+  url.pathname = "/auth/session-expired";
+  url.search = "";
+  url.searchParams.set("reason", reason);
+  url.searchParams.set("redirectTo", `${pathname}${search}`);
+
+  if (isMentorPath) {
+    url.searchParams.set("mode", "mentor");
+  }
+
+  return NextResponse.redirect(url);
 }
 
 export async function updateSession(request: NextRequest) {
@@ -53,6 +91,44 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (user && pathname !== "/auth/session-expired") {
+    const now = Date.now();
+    const signedInAt = user.last_sign_in_at
+      ? new Date(user.last_sign_in_at).getTime()
+      : Number.NaN;
+
+    if (
+      !Number.isNaN(signedInAt) &&
+      now - signedInAt >= ABSOLUTE_SESSION_LIFETIME_MS
+    ) {
+      return expiredRedirect(request, "absolute");
+    }
+
+    const rawLastActivity = request.cookies.get(SESSION_ACTIVITY_COOKIE)?.value;
+    const parsedLastActivity = rawLastActivity
+      ? Number(rawLastActivity)
+      : Number.NaN;
+
+    const hasValidActivity =
+      Number.isFinite(parsedLastActivity) &&
+      parsedLastActivity <= now + 60_000 &&
+      (Number.isNaN(signedInAt) || parsedLastActivity >= signedInAt);
+
+    if (hasValidActivity) {
+      if (now - parsedLastActivity >= INACTIVITY_TIMEOUT_MS) {
+        return expiredRedirect(request, "inactive");
+      }
+    } else if (!Number.isNaN(signedInAt)) {
+      if (now - signedInAt >= INACTIVITY_TIMEOUT_MS) {
+        return expiredRedirect(request, "inactive");
+      }
+
+      setActivityCookie(response, now);
+    } else {
+      setActivityCookie(response, now);
+    }
+  }
+
   let role: "mentee" | "mentor" = "mentee";
 
   if (user) {
@@ -75,9 +151,10 @@ export async function updateSession(request: NextRequest) {
   if (user && (pathname === "/login" || pathname === "/signup")) {
     const requestedMentorMode = request.nextUrl.searchParams.get("mode") === "mentor";
     const url = request.nextUrl.clone();
-    url.pathname = requestedMentorMode && role === "mentor"
-      ? "/mentor/dashboard"
-      : "/dashboard";
+    url.pathname =
+      requestedMentorMode && role === "mentor"
+        ? "/mentor/dashboard"
+        : "/dashboard";
     url.search = "";
     return NextResponse.redirect(url);
   }
