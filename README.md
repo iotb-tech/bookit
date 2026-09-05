@@ -719,54 +719,663 @@ Shared changes involving authentication, database migrations, types, dependencie
 
 ---
 
-# Team Contributions
+# Team File Allocation
 
-Add the actual Group 4 member names and responsibilities below.
+BookIt started with a clear responsibility split across ten members. As the project expanded, additional files were created around each member's original area of responsibility.
 
-Do not list responsibilities that were not completed by the named member.
+Some files are shared across multiple features, especially authentication, booking, mentor workflows, Study Groups, notifications, settings, and database migrations.
 
-### Member 1 — Name
 
-- Responsibility
-- Features implemented
-- Integration work
-- Testing responsibilities
+---
 
-### Member 2 — Name
+## Member 1 – Auth Core
 
-- Responsibility
-- Features implemented
-- Integration work
-- Testing responsibilities
+**Name:** 
 
-### Member 3 — Name
+Primary responsibility: authentication infrastructure, Supabase clients, shared application authentication setup, and global session initialization.
 
-- Responsibility
-- Features implemented
-- Integration work
-- Testing responsibilities
+### Core Files
 
-### Member 4 — Name
+```text
+src/lib/supabase/client.ts
+src/lib/supabase/server.ts
+src/app/layout.tsx
+```
 
-- Responsibility
-- Features implemented
-- Integration work
-- Testing responsibilities
+### Related Current Files
 
-### Member 5 — Name
+```text
+src/components/auth/SessionExpiryGuard.tsx
+src/components/auth/SessionExpiredBanner.tsx
+src/components/theme/ThemeInitializer.tsx
+src/app/auth/callback/route.ts
+```
 
-- Responsibility
-- Features implemented
-- Integration work
-- Testing responsibilities
+### Related Configuration
 
-### Member 6 — Name
+```text
+.env.example
+src/middleware.ts
+```
 
-- Responsibility
-- Features implemented
-- Integration work
-- Testing responsibilities
+### Related Responsibilities
 
+```text
+Supabase client setup
+Supabase server setup
+Authentication session initialization
+OAuth callback support
+Session expiry support
+Global application authentication setup
+```
+
+Authentication-related changes to protected routes and session behaviour are shared with Member 3 where required.
+
+---
+
+## Member 2 – Auth UI
+
+**Name:**
+
+Primary responsibility: login, signup, and the user-facing authentication experience.
+
+### Core Files
+
+```text
+src/components/auth/LoginForm.tsx
+src/components/auth/SignupForm.tsx
+```
+
+### Related Current Files
+
+```text
+src/app/login/page.tsx
+src/app/signup/page.tsx
+src/components/auth/SessionExpiredBanner.tsx
+```
+
+### Related Responsibilities
+
+```text
+Login form
+Signup form
+Email/password authentication UI
+Google OAuth UI
+GitHub OAuth UI
+Authentication validation feedback
+Session-expired message
+Authentication page layout
+```
+
+---
+
+## Member 3 – Auth Support / Testing
+
+**Name:** 
+
+Primary responsibility: authentication support, navigation behaviour, protected-route testing, session behaviour, and role-aware routing.
+
+### Core File
+
+```text
+src/components/layout/Navbar.tsx
+```
+
+### Related Current Files
+
+```text
+src/app/auth/callback/route.ts
+src/components/auth/SessionExpiryGuard.tsx
+src/components/auth/SessionExpiredBanner.tsx
+src/middleware.ts
+```
+
+### Related Application Areas
+
+```text
+src/app/dashboard/
+src/app/mentor/
+src/app/login/
+src/app/signup/
+```
+
+### Related Testing Responsibilities
+
+```text
+Email/password authentication
+Google OAuth
+GitHub OAuth
+Protected-route redirects
+Session persistence
+Session expiry
+Role-aware redirects
+Logout
+Authenticated navigation
+```
+
+---
+
+## Member 4 – Resource Core
+
+**Name:** 
+
+Primary responsibility: resource pages, resource routing, resource loading, and resource discovery.
+
+### Core Files
+
+```text
+src/app/resources/page.tsx
+src/app/resources/[id]/page.tsx
+```
+
+### Related Current Files
+
+```text
+src/app/resources/new/page.tsx
+```
+
+### Related Responsibilities
+
+```text
+Resources page
+Dynamic resource detail page
+Mentor resource routing
+Study Group resource routing
+Resource loading states
+Resource empty states
+Resource search flow
+Resource filter flow
+Availability entry point
+Study Group join entry point
+```
+
+---
+
+## Member 5 – Resource UI
+
+**Name:** 
+
+Primary responsibility: resource presentation and reusable resource interface components.
+
+### Core Files
+
+```text
+src/components/resources/ResourceCard.tsx
+src/components/resources/ResourceList.tsx
+src/components/resources/ResourceDetails.tsx
+```
+
+### Related Responsibilities
+
+```text
+Mentor resource cards
+Study Group resource cards
+Resource list presentation
+Resource details layout
+Resource status display
+Skills display
+Availability selection interface
+Study Group membership actions
+Resource responsive behaviour
+```
+
+Resource UI is shared with booking and Study Group logic where those workflows appear within resource details.
+
+---
+
+## Member 6 – Resource Data & Integration
+
+**Name:** Harry Oluwaseyi Williams
+
+Primary responsibility: resource data structures, Supabase resource queries, resource availability data, and integration of resource-related data across BookIt.
+
+### Core Files
+
+```text
+src/types/resource.ts
+src/lib/supabase/resources.ts
+```
+
+### Related Current Files
+
+```text
+src/hooks/useAvailabilitySlot.ts
+src/lib/study-groups/index.ts
+```
+
+### Related Data Responsibilities
+
+```text
+Resource data retrieval
+Mentor resource data
+Study Group resource data
+Resource type definitions
+Availability data
+Exact availability-slot lookup
+Resource status data
+Resource ownership data
+Study Group membership data
+Study Group schedule data
+Study Group session data
+Study Group waitlist data
+Resource and Study Group data integration
+```
+
+### Related Database Files
+
+```text
+supabase/schema.sql
+
+supabase/migrations/20260818_bookit_hardening.sql
+supabase/migrations/20260821_expand_resource_availability.sql
+supabase/migrations/20260901_mentor_portal.sql
+supabase/migrations/20260902_00_add_pending_booking_status.sql
+supabase/migrations/20260902_study_groups.sql
+supabase/migrations/20260902_workflow_notifications_settings.sql
+supabase/migrations/20260904_notification_cleanup_and_sample_resource_archive.sql
+```
+
+These database files are shared integration files and are not treated as exclusive Member 6 ownership. They are listed because they directly affect resource, availability, mentor, and Study Group data behaviour.
+
+---
+
+## Member 7 – Booking Engine
+
+**Name:** 
+
+Primary responsibility: booking creation, booking validation, slot reservation, conflict protection, and rescheduling logic.
+
+### Core Files
+
+```text
+src/app/book/[id]/page.tsx
+src/schemas/bookingSchema.ts
+```
+
+### Related Current Files
+
+```text
+src/lib/bookings/actions.ts
+src/hooks/useAvailabilitySlot.ts
+```
+
+### Related Responsibilities
+
+```text
+Booking request creation
+Booking validation
+Pending booking state
+Availability-slot reservation
+Mentor booking confirmation
+Booking conflict protection
+Availability release
+Booking rescheduling
+Reschedule approval
+Reschedule decline
+Booking database workflow
+```
+
+### Related Database Files
+
+```text
+supabase/migrations/20260818_bookit_hardening.sql
+supabase/migrations/20260902_workflow_notifications_settings.sql
+```
+
+These migrations are shared integration files.
+
+---
+
+## Member 8 – Booking UI
+
+**Name:** 
+Primary responsibility: booking interface, booking cards, booking actions, and booking-related interaction.
+
+### Core Folder
+
+```text
+src/components/booking/
+```
+
+### Main Current File
+
+```text
+src/components/booking/BookingCard.tsx
+```
+
+### Related Responsibilities
+
+```text
+Booking confirmation UI
+Pending mentor confirmation
+Upcoming booking display
+Past booking display
+Cancelled booking display
+Booking status badges
+Cancellation controls
+Cancellation reason display
+Reschedule modal
+Reschedule request feedback
+Booking action buttons
+Responsive booking layout
+```
+
+Member 8 works closely with Members 7, 9, and 10 because booking actions appear across several application areas.
+
+---
+
+## Member 9 – My Bookings Core
+
+**Name:** 
+
+Primary responsibility: the My Bookings experience, booking history, and session-management presentation.
+
+### Core File
+
+```text
+src/app/my-bookings/page.tsx
+```
+
+### Related Current Files
+
+```text
+src/components/booking/BookingCard.tsx
+src/app/dashboard/page.tsx
+src/app/dashboard/overview/
+```
+
+### Related Responsibilities
+
+```text
+Upcoming bookings
+Past bookings
+Pending bookings
+Confirmed bookings
+Cancelled bookings
+Booking history
+Reschedule status
+Cancellation reason display
+Booking counts
+Dashboard booking integration
+Session-management navigation
+```
+
+---
+
+## Member 10 – Cancellation
+
+**Name:** 
+Primary responsibility: cancellation workflows, cancellation feedback, cancellation reasons, and related updates.
+
+### Related Current Files
+
+```text
+src/components/booking/BookingCard.tsx
+src/components/mentor/MentorSessionsList.tsx
+src/lib/bookings/actions.ts
+src/lib/mentor/actions.ts
+src/schemas/mentorSchema.ts
+```
+
+### Related Cancellation Responsibilities
+
+```text
+Mentee booking cancellation
+Mentor booking cancellation
+Required mentor cancellation reason
+Cancellation reason storage
+Booking status updates
+Availability release or closure
+Cancellation feedback
+Cancellation notifications
+Study Group session cancellation
+Study Group cancellation reason
+```
+
+### Related Notification Files
+
+```text
+src/components/notifications/NotificationsWorkspace.tsx
+src/components/notifications/NotificationBadge.tsx
+src/app/messages/page.tsx
+src/app/mentor/messages/page.tsx
+```
+
+Cancellation notifications are shared with the notifications feature.
+
+---
+
+# Shared / Cross-Member Features
+
+As BookIt expanded, several features became shared across the original allocations.
+
+These files should not be presented as the exclusive responsibility of one member unless the team agrees and the named member actually completed that work.
+
+---
+
+## Mentor Portal
+
+### Main Application Areas
+
+```text
+src/app/mentor/
+src/components/mentor/
+src/lib/mentor/
+src/schemas/mentorSchema.ts
+```
+
+### Current Files Include
+
+```text
+src/app/mentor/dashboard/
+src/app/mentor/sessions/
+src/app/mentor/availability/
+src/app/mentor/messages/
+src/app/mentor/profile/
+src/app/mentor/study-groups/
+
+src/components/mentor/MentorAppShell.tsx
+src/components/mentor/MentorSessionsList.tsx
+src/components/mentor/MentorAvailabilityManager.tsx
+src/components/mentor/MentorStudyGroupsList.tsx
+src/components/mentor/MentorStudyGroupDetail.tsx
+
+src/lib/mentor/actions.ts
+src/lib/mentor/index.ts
+```
+
+### Current Mentor Features
+
+```text
+Mentor dashboard
+Booking request review
+Booking confirmation
+Mentor cancellation
+Cancellation reasons
+Availability management
+Clear open availability
+Reschedule approval
+Reschedule decline
+Mentor profile
+Study Group management
+Mentee View
+Mentor notifications
+```
+
+---
+
+## Study Groups
+
+### Main Files
+
+```text
+src/app/my-study-groups/page.tsx
+src/app/mentor/study-groups/
+src/components/study-groups/
+src/components/mentor/MentorStudyGroupsList.tsx
+src/components/mentor/MentorStudyGroupDetail.tsx
+src/lib/study-groups/index.ts
+```
+
+### Current Study Group Features
+
+```text
+Group membership
+Join Group
+Leave Group
+Capacity management
+Waitlist
+Waitlist promotion
+Recurring schedules
+Generated sessions
+One-off sessions
+Member management
+Group session cancellation
+Cancellation reasons
+Attendance
+Study Group notifications
+```
+
+---
+
+## Notifications
+
+### Main Files
+
+```text
+src/app/messages/page.tsx
+src/app/mentor/messages/page.tsx
+
+src/components/notifications/NotificationsWorkspace.tsx
+src/components/notifications/NotificationBadge.tsx
+
+src/hooks/useNotifications.ts
+src/types/notification.ts
+```
+
+### Current Notification Features
+
+```text
+Booking request notifications
+Booking confirmation notifications
+Cancellation notifications
+Cancellation reasons
+Reschedule request notifications
+Reschedule decision notifications
+Study Group updates
+Waitlist promotion
+Session reminders
+Unread notification badge
+All filter
+Unread filter
+Read filter
+Mark all as read
+Clear notifications
+```
+
+---
+
+## Settings and Theme
+
+### Main Files
+
+```text
+src/app/settings/page.tsx
+src/components/settings/AccountSettings.tsx
+src/components/theme/ThemeInitializer.tsx
+src/app/globals.css
+```
+
+### Current Features
+
+```text
+Light mode
+Dark mode
+System theme
+Booking update preferences
+Study Group update preferences
+Reminder preferences
+Reminder lead time
+Password management
+Global sign-out
+```
+
+---
+
+## Shared Authentication Support
+
+```text
+src/components/auth/SessionExpiryGuard.tsx
+src/components/auth/SessionExpiredBanner.tsx
+src/app/auth/callback/route.ts
+src/middleware.ts
+```
+
+### Current Authentication Support
+
+```text
+Session expiry
+OAuth callback
+Protected-route behaviour
+Role-aware navigation
+Expired-session feedback
+```
+
+---
+
+## Shared UI Components
+
+```text
+src/components/ui/PageBadge.tsx
+src/components/ui/AutoDismissAlert.tsx
+src/components/layout/
+src/components/mentor/MentorAppShell.tsx
+```
+
+These components are reused across several BookIt pages and workflows.
+
+---
+
+## Shared Database Files
+
+Database migrations affect several team areas and are treated as shared integration files.
+
+### Main Database Files
+
+```text
+supabase/schema.sql
+supabase/seed.sql
+supabase/migrations/
+```
+
+### Important Current Migrations
+
+```text
+supabase/migrations/20260818_bookit_hardening.sql
+supabase/migrations/20260821_expand_resource_availability.sql
+supabase/migrations/20260901_mentor_portal.sql
+supabase/migrations/20260902_00_add_pending_booking_status.sql
+supabase/migrations/20260902_study_groups.sql
+supabase/migrations/20260902_workflow_notifications_settings.sql
+supabase/migrations/20260904_notification_cleanup_and_sample_resource_archive.sql
+```
+
+These migrations support multiple areas including:
+
+```text
+Resources
+Availability
+Bookings
+Booking approval
+Rescheduling
+Mentor workflows
+Study Groups
+Attendance
+Waitlists
+Notifications
+Settings
+Resource cleanup
+```
 ---
 
 # Project Goal
